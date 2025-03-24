@@ -1,5 +1,12 @@
 "use client";
 
+{
+  /*  run these before starting the server: 
+    1.npx shadcn@latest init
+    2.npx shadcn@latest add button
+*/
+}
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";

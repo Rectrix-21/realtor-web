@@ -1,5 +1,7 @@
 "use client";
 
+/* run npm install @heroicons/react */
+
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -108,6 +110,9 @@ export default function Home() {
           </li>
 
           <li className="navbar-li">Career Opportunity</li>
+          <li className="navbar-li">
+            <Link href="/admin-dashboard">Admin Dashboard</Link>
+          </li>
         </ul>
       </nav>
 

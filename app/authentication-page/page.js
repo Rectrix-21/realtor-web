@@ -1,53 +1,57 @@
 "use client";
 
+{
+  /* run npm install @heroicons/react */
+}
+
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
+import "./styles.css";
 
 export default function Authenticate() {
   const [tab, setTab] = useState("signup");
 
   return (
-    <div className="relative min-h-screen text-white flex flex-col">
+    <div className="auth-container">
       {/* Background Image */}
       <Image
         src="/images/sign-up.jpg"
         alt="Luxury Interior"
         fill
         style={{ objectFit: "cover" }}
-        className="-z-10 opacity-100"
+        className="auth-bg-image"
       />
 
       {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/50 -z-10" />
+      <div className="auth-overlay"></div>
 
-      <div className="flex flex-col items-center justify-center min-h-screen text-white">
-        <div className="bg-[#8b6f47]/80 p-8 rounded-lg shadow-lg w-96 text-center">
-          <h1 className="text-2xl font-bold">Welcome to Brick Developments</h1>
+      <div className="auth-inner-container">
+        <div className="auth-form-box">
+          <h1 className="auth-heading">Welcome to Brick Developments</h1>
 
           {/* Authentication Tabs */}
-          <div className="flex justify-center mt-5 space-x-4 ">
+          <div className="auth-tabs">
             <button
               onClick={() => setTab("signup")}
-              className={`py-2 px-4 rounded-lg hover:bg-[#8b6f47] cursor-pointer transition-colors duration-100 ${
-                tab === "signup" ? "bg-[#8b6f47] " : "bg-black/40"
+              className={`auth-tab ${
+                tab === "signup" ? "active-tab" : "inactive-tab"
               }`}
             >
               Sign Up
             </button>
             <button
               onClick={() => setTab("login")}
-              className={`py-2 px-4 rounded-lg hover:bg-[#8b6f47] cursor-pointer transition-colors duration-100 ${
-                tab === "login" ? "bg-[#8b6f47]" : "bg-black/40"
+              className={`auth-tab ${
+                tab === "login" ? "active-tab" : "inactive-tab"
               }`}
             >
               Log In
             </button>
             <button
               onClick={() => setTab("admin")}
-              className={`py-2 px-4 rounded-lg hover:bg-[#8b6f47] cursor-pointer transition-colors duration-100 ${
-                tab === "admin" ? "bg-[#8b6f47]" : "bg-black/40"
+              className={`auth-tab ${
+                tab === "admin" ? "active-tab" : "inactive-tab"
               }`}
             >
               Admin Login
@@ -56,7 +60,7 @@ export default function Authenticate() {
 
           {/* Forms */}
           {tab === "signup" && (
-            <div className="mt-5">
+            <div className="auth-form">
               <input
                 type="text"
                 placeholder="Username"
@@ -68,28 +72,24 @@ export default function Authenticate() {
                 placeholder="Password"
                 className="input-field"
               />
-              <Button className="mt-4 bg-[#8b6f47]/80 hover:bg-[#8b6f47] cursor-pointer">
-                Sign Up
-              </Button>
+              <button className="auth-custom-button">Sign Up</button>
             </div>
           )}
 
           {tab === "login" && (
-            <div className="mt-5">
+            <div className="auth-form">
               <input type="email" placeholder="Email" className="input-field" />
               <input
                 type="password"
                 placeholder="Password"
                 className="input-field"
               />
-              <Button className="mt-4 bg-[#8b6f47]/80 hover:bg-[#8b6f47] cursor-pointer">
-                Log In
-              </Button>
+              <button className="auth-custom-button">Log In</button>
             </div>
           )}
 
           {tab === "admin" && (
-            <div className="mt-5">
+            <div className="auth-form">
               <input
                 type="text"
                 placeholder="Admin ID"
@@ -100,14 +100,12 @@ export default function Authenticate() {
                 placeholder="Password"
                 className="input-field"
               />
-              <Button className="mt-4 bg-[#8b6f47]/80 hover:bg-[#8b6f47] cursor-pointer">
-                Admin Login
-              </Button>
+              <button className="auth-custom-button">Admin Login</button>
             </div>
           )}
 
           {/* Back to Home */}
-          <Link href="/" className="mt-4 inline-block text-sm underline">
+          <Link href="/" className="back-home-link">
             Back to Home
           </Link>
         </div>

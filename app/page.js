@@ -11,6 +11,7 @@ import "./styles.css";
 export default function Home() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [propertiesOpen, setPropertiesOpen] = useState(false);
+  const [adminLoggedIn, setAdminLoggedIn] = useState(false);
 
   const handleDropdownItemClick = (e, item) => {
     e.stopPropagation();
@@ -110,9 +111,11 @@ export default function Home() {
           </li>
 
           <li className="navbar-li">Career Opportunity</li>
-          <li className="navbar-li">
-            <Link href="/admin-dashboard">Admin Dashboard</Link>
-          </li>
+          {adminLoggedIn && (
+            <li className="navbar-li">
+              <Link href="/admin-dashboard">Admin Dashboard</Link>
+            </li>
+          )}
         </ul>
       </nav>
 

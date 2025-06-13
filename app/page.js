@@ -138,9 +138,11 @@ export default function Home() {
         </div>
 
         <div className="view-listings">
+          <Link href="/view-listings">
           <button className="custom-button-home view-button">
             View Listings
           </button>
+          </Link>
         </div>
       </div>
     </div>

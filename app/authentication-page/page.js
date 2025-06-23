@@ -28,7 +28,7 @@ export default function Authenticate() {
 
       <div className="auth-inner-container">
         <div className="auth-form-box">
-          <h1 className="auth-heading">Welcome to Brick Developments</h1>
+          <h1 className="auth-heading">Welcome to Havenly</h1>
 
           {/* Authentication Tabs */}
           <div className="auth-tabs">

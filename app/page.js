@@ -34,7 +34,7 @@ export default function Home() {
 
       {/* Logo */}
       <div className="logo">
-        <span className="home-icon">&#127969;</span> BRICK DEVELOPMENTS
+        <span className="home-icon">&#127969;</span> HAVENLY
       </div>
 
       {/* Sign Up Button */}
@@ -122,8 +122,8 @@ export default function Home() {
       {/* Main Content */}
       <div className="main-content">
         <h1>
-          <span className="bold-text">Brick</span>{" "}
-          <span className="light-text">Developments</span>
+          <span className="bold-text">Haven</span>{" "}
+          <span className="light-text">ly</span>
         </h1>
         <p className="subtitle">Turning Your Vision Of The Perfect Home</p>
 

@@ -43,7 +43,7 @@ export default function Listings() {
       {/* Navbar */}
       <nav className="navbar">
         <div className="logo">
-          <span className="home-icon">&#127969;</span> BRICK DEVELOPMENTS
+          <span className="home-icon">&#127969;</span> HAVENLY
         </div>
         <ul className="navbar-ul">
           <li className="navbar-li">
@@ -69,26 +69,32 @@ export default function Listings() {
       {/* Listings Grid */}
       <div className="listings-grid">
         {listings.map((listing) => (
-          <div className="listing-card" key={listing.id}>
-            <Image
-              src={listing.image}
-              alt={listing.address}
-              width={300}
-              height={200}
-              className="listing-image"
-            />
-            <div className="listing-info">
-              <div className="listing-address">{listing.address}</div>
-              <div className="listing-price">{listing.price}</div>
-              <div className="listing-details">
-                <span>{listing.beds}</span>
-                <span>{listing.size}</span>
-              </div>
-              <div className="listing-details">
-                <span>{listing.baths}</span>
+          <Link
+            href={`/view-listings/${listing.id}`}
+            key={listing.id}
+            className="listing-link"
+          >
+            <div className="listing-card">
+              <Image
+                src={listing.image}
+                alt={listing.address}
+                width={300}
+                height={200}
+                className="listing-image"
+              />
+              <div className="listing-info">
+                <div className="listing-address">{listing.address}</div>
+                <div className="listing-price">{listing.price}</div>
+                <div className="listing-details">
+                  <span>{listing.beds}</span>
+                  <span>{listing.size}</span>
+                </div>
+                <div className="listing-details">
+                  <span>{listing.baths}</span>
+                </div>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 

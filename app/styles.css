@@ -165,10 +165,12 @@
 
 .bold-text {
   font-weight: bold;
+  margin-right: -15px;
 }
 
 .light-text {
-  font-weight: 300;
+  font-weight: lighter;
+  color: #c4a47c;
 }
 
 .subtitle {

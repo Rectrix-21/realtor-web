@@ -119,6 +119,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  body {
+    background: linear-gradient(45deg, #000, #241b0c 50%, #000 100%) !important;
+  }
 }
 
 .input-field {

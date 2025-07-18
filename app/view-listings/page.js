@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-//import "./styles.css";
+import "./styles.css";
 
 const listings = [
   {
@@ -42,16 +42,19 @@ export default function Listings() {
     <div className="listings-container">
       {/* Navbar */}
       <nav className="navbar">
-        <div className="logo">
-          <span className="home-icon">&#127969;</span> HAVENLY
-        </div>
         <ul className="navbar-ul">
           <li className="navbar-li">
             <Link href="/">Home</Link>
           </li>
-          <li className="navbar-li">About</li>
-          <li className="navbar-li">Properties</li>
-          <li className="navbar-li">Career opportunity</li>
+          <li className="navbar-li">
+            <Link href="/contact">About</Link>
+          </li>
+          <li className="navbar-li">
+            <Link href="/view-listings">Properties</Link>
+          </li>
+          <li className="navbar-li">
+            <Link href="/careers">Career opportunity</Link>
+          </li>
         </ul>
       </nav>
 

@@ -47,75 +47,18 @@ export default function Home() {
       {/* Navbar */}
       <nav className="navbar">
         <ul className="navbar-ul">
-          <li className="navbar-li">Home</li>
-
-          {/* About Dropdown */}
-          <li className="navbar-li" onClick={() => setAboutOpen(!aboutOpen)}>
-            <div className="dropdown-header">
-              About{" "}
-              {aboutOpen ? (
-                <ChevronUpIcon className="chevron" width={20} height={20} />
-              ) : (
-                <ChevronDownIcon className="chevron" width={20} height={20} />
-              )}
-            </div>
-            {aboutOpen && (
-              <div className="dropdown-content">
-                <p
-                  className="dropdown-item"
-                  onClick={(e) => handleDropdownItemClick(e, "Contact")}
-                >
-                  Contact
-                </p>
-                <p
-                  className="dropdown-item"
-                  onClick={(e) => handleDropdownItemClick(e, "Testimonials")}
-                >
-                  Testimonials
-                </p>
-                <p
-                  className="dropdown-item"
-                  onClick={(e) => handleDropdownItemClick(e, "Community")}
-                >
-                  Community
-                </p>
-              </div>
-            )}
+          <li className="navbar-li">
+            <Link href="/">Home</Link>
           </li>
-
-          {/* Properties Dropdown */}
-          <li
-            className="navbar-li"
-            onClick={() => setPropertiesOpen(!propertiesOpen)}
-          >
-            <div className="dropdown-header">
-              Properties{" "}
-              {propertiesOpen ? (
-                <ChevronUpIcon className="chevron" width={20} height={20} />
-              ) : (
-                <ChevronDownIcon className="chevron" width={20} height={20} />
-              )}
-            </div>
-            {propertiesOpen && (
-              <div className="dropdown-content">
-                <p
-                  className="dropdown-item"
-                  onClick={(e) =>
-                    handleDropdownItemClick(e, "Upcoming Projects")
-                  }
-                >
-                  Upcoming Projects
-                </p>
-              </div>
-            )}
+          <li className="navbar-li">
+            <Link href="/contact">About</Link>
           </li>
-
-          <li className="navbar-li">Career Opportunity</li>
-          {adminLoggedIn && (
-            <li className="navbar-li">
-              <Link href="/admin-dashboard">Admin Dashboard</Link>
-            </li>
-          )}
+          <li className="navbar-li">
+            <Link href="/view-listings">Properties</Link>
+          </li>
+          <li className="navbar-li">
+            <Link href="/careers">Career opportunity</Link>
+          </li>
         </ul>
       </nav>
 
@@ -139,9 +82,9 @@ export default function Home() {
 
         <div className="view-listings">
           <Link href="/view-listings">
-          <button className="custom-button-home view-button">
-            View Listings
-          </button>
+            <button className="custom-button-home view-button">
+              View Listings
+            </button>
           </Link>
         </div>
       </div>

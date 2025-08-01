@@ -1,0 +1,488 @@
+.listing-details-container {
+  background: linear-gradient(45deg, #000, #241b0c 50%, #000 100%);
+  color: #fff;
+  min-height: 100vh;
+  font-family: "Poppins", sans-serif;
+  padding-bottom: 40px;
+  padding-top: 100px;
+}
+
+.listing-gallery {
+  display: flex;
+  gap: 8px;
+  margin: 32px auto 16px auto;
+  max-width: 900px;
+  overflow-x: auto;
+}
+
+.gallery-img-wrapper {
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.gallery-img {
+  width: 180px;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+}
+
+.virtual-tour-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.virtual-tour-btn {
+  background: #bfa76a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 24px;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-top: 8px;
+}
+
+.listing-about {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.listing-about h2 {
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+}
+
+.listing-about p {
+  margin: 0 0 8px 0;
+  color: #e0e0e0;
+}
+
+.schedule-btn {
+  background: #bfa76a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 24px;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-top: 8px;
+}
+
+.property-info-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 300px;
+  border-top: 1px solid #bfa76a;
+  border-bottom: 1px solid #bfa76a;
+  padding: 20px 0;
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.property-info-row + .property-info-row {
+  border-top: none;
+}
+
+.status-active {
+  background: #0c7a19;
+  color: #fff;
+  border-radius: 8px;
+  padding: 2px 12px;
+  font-weight: 600;
+}
+
+.mortgage-section {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 48px;
+  margin: 32px 0;
+}
+
+.mortgage-calc {
+  background: rgba(0,0,0,0.5);
+  border-radius: 16px;
+  padding: 32px 40px;
+  min-width: 280px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.mortgage-calc h3 {
+  margin-bottom: 24px;
+  font-size: 1.2rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.mortgage-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 32px;
+  width: 100%;
+}
+
+.mortgage-fields label {
+  display: block;
+  font-size: 1rem;
+  color: #bfa76a;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.mortgage-fields input,
+.mortgage-fields select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1.5px solid #bfa76a;
+  background: #18140c;
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: 500;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.mortgage-fields input:focus,
+.mortgage-fields select:focus {
+  border-color: #d4af37;
+}
+
+.mortgage-chart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+}
+
+.mortgage-circle {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: conic-gradient(#14119b 10% 0%, #9b1e1e 15% 0%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin: 50 auto;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  position: relative;
+}
+
+.mortgage-circle::after {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 114px;   /* 150px - 2*18px */
+  height: 114px;
+  background: #18140c; /* match your card background */
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.mortgage-amount,
+.mortgage-label {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  width: 100%;
+}
+
+.mortgage-legend {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.98rem;
+  color: #fff;
+  align-items: flex-start;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  margin-right: 8px;
+  margin-left: 20px;
+  vertical-align: middle;
+}
+
+
+
+.schools-section {
+  margin: 40px 0 0 0;
+  text-align: center;
+}
+
+.schools-section h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 18px;
+  letter-spacing: 0.5px;
+}
+
+.schools-row {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+}
+
+.school-card {
+  background: rgba(191, 167, 106, 0.08);
+  border-radius: 14px;
+  padding: 22px 28px;
+  min-width: 200px;
+  max-width: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  position: relative;
+}
+
+.school-card:not(:first-child) {
+  margin-left: 32px;
+}
+
+.school-card:not(:first-child)::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 24px;
+  bottom: 24px;
+  width: 2px;
+  background: linear-gradient(to bottom, #bfa76a 0%, #fff2 100%);
+  border-radius: 1px;
+  z-index: 2;
+}
+
+.school-icon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  color: #d4af37;
+}
+
+.school-desc {
+  font-size: 1.02rem;
+  color: #e0e0e0;
+  text-align: center;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.walk-section {
+  margin: 48px 0 0 0;
+  text-align: center;
+}
+
+.walk-section h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 18px;
+  letter-spacing: 0.5px;
+}
+
+.walk-row {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+}
+
+.walk-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+  background: rgba(191, 167, 106, 0.08);
+  border-radius: 14px;
+  padding: 22px 28px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  position: relative;
+}
+
+.walk-card:not(:first-child) {
+  margin-left: 32px;
+}
+
+.walk-card:not(:first-child)::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 24px;
+  bottom: 24px;
+  width: 2px;
+  background: linear-gradient(to bottom, #bfa76a 0%, #fff2 100%);
+  border-radius: 1px;
+  z-index: 2;
+}
+
+.walk-icon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  color: #d4af37;
+}
+
+.walk-score {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #d4af37;
+  margin-bottom: 4px;
+}
+
+.walk-label {
+  font-size: 1.08rem;
+  color: #fff;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.school-card:not(:first-child),
+.walk-card:not(:first-child) {
+  margin-left: 80px; /* increase this for more space */
+}
+
+.school-card:not(:first-child)::before,
+.walk-card:not(:first-child)::before {
+  left: -40px; /* half of margin-left */
+}
+
+.main-image-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 32px 0 12px 0;
+}
+
+.main-listing-image {
+  border-radius: 12px;
+  object-fit: cover;
+  width: 900px;
+  height: 400px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+}
+
+.thumbnail-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.thumbnail-wrapper {
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border 0.2s;
+}
+
+.thumbnail-wrapper.selected {
+  border: 2px solid #d4af37;
+}
+
+.thumbnail-image {
+  width: 120px;
+  height: 80px;
+  object-fit: cover;
+  display: block;
+  border-radius: 8px;
+}
+
+/* Logo styling */
+.logo {
+  position: absolute;
+  top: 32px;
+  left: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 20;
+}
+
+.home-icon {
+  font-size: 2.5rem;
+  color: #fff;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.logo-main {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 2px;
+}
+
+.logo-sub {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+/* Navbar */
+.navbar {
+  
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(139, 111, 71, 0.6);
+  transition: background-color 0.1s;
+  border-radius: 9999px;
+  padding: 12px 60px;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar:hover {
+  background-color: #8b6f47;
+}
+
+.navbar-ul {
+  display: flex;
+  gap: 50px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-li {
+  font-weight: 500;
+  font-size: 1.05rem;
+  color: #fff;
+  cursor: pointer;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  border-radius: 12px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.navbar-li:hover {
+  background: rgba(255,255,255,0.12);
+  color: #d4af37;
+}

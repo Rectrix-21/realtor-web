@@ -53,7 +53,7 @@
 /* Sign Up Button */
 .signup-btn {
   position: absolute;
-  top: 20px;
+  top: 38px;
   right: 160px;
   z-index: 20;
 }
@@ -104,48 +104,23 @@
 }
 
 .navbar-li {
+  font-weight: 500;
+  font-size: 1.05rem;
+  color: #fff;
   cursor: pointer;
-  position: relative;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  border-radius: 12px;
+  transition: background 0.2s, color 0.2s;
 }
 
 .navbar-li:hover {
-  text-decoration: underline;
+  background: rgba(255,255,255,0.12);
+  color: #d4af37;
 }
 
-/* Simple Dropdown for "About" and "Properties" */
-.dropdown-content {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  background-color: rgba(139, 111, 71, 0.9);
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 8px;
-  z-index: 50;
-}
-
-.dropdown-content p {
-  margin: 4px 0;
-  padding: 4px 8px;
-  cursor: pointer;
-}
-
-.dropdown-content p:hover {
-  text-decoration: underline;
-}
-
-.dropdown-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-right: 8px;
-}
-
-/* Style for the chevron icons */
-.chevron {
-  margin-left: 5px;
-  transition: transform 0.3s ease;
-}
 
 /* Main Content */
 .main-content {
@@ -165,10 +140,12 @@
 
 .bold-text {
   font-weight: bold;
+  margin-right: -15px;
 }
 
 .light-text {
-  font-weight: 300;
+  font-weight: lighter;
+  color: #c4a47c;
 }
 
 .subtitle {

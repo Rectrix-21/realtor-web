@@ -3,7 +3,6 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../database/auth";
 import "./styles.css";
 
 export default function Authenticate() {
@@ -16,8 +15,6 @@ export default function Authenticate() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-
-  const { login, signup, session } = useAuth();
 
   const resetForm = () => {
     setEmail("");

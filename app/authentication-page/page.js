@@ -28,9 +28,9 @@ export default function Authenticate() {
     e.preventDefault();
     setIsProcessing(true);
     setError("");
-    
+
     const result = await signup(username, email, password);
-    
+
     setIsProcessing(false);
     if (!result.success) {
       setError(result.error);
@@ -46,9 +46,9 @@ export default function Authenticate() {
     e.preventDefault();
     setIsProcessing(true);
     setError("");
-    
+
     const result = await login(email, password);
-    
+
     setIsProcessing(false);
     if (!result.success) {
       setError(result.error);
@@ -63,12 +63,12 @@ export default function Authenticate() {
     e.preventDefault();
     setIsProcessing(true);
     setError("");
-    
+
     try {
       // Implement your admin login logic here
       console.log("Admin login attempt with:", adminId, password);
       // Example: const result = await adminLogin(adminId, password);
-      
+
       setIsProcessing(false);
       setSuccess("Admin login successful!");
       resetForm();
@@ -102,7 +102,9 @@ export default function Authenticate() {
                 setTab("signup");
                 resetForm();
               }}
-              className={`auth-tab ${tab === "signup" ? "active-tab" : "inactive-tab"}`}
+              className={`auth-tab ${
+                tab === "signup" ? "active-tab" : "inactive-tab"
+              }`}
             >
               Sign Up
             </button>
@@ -111,7 +113,9 @@ export default function Authenticate() {
                 setTab("login");
                 resetForm();
               }}
-              className={`auth-tab ${tab === "login" ? "active-tab" : "inactive-tab"}`}
+              className={`auth-tab ${
+                tab === "login" ? "active-tab" : "inactive-tab"
+              }`}
             >
               Log In
             </button>
@@ -120,7 +124,9 @@ export default function Authenticate() {
                 setTab("admin");
                 resetForm();
               }}
-              className={`auth-tab ${tab === "admin" ? "active-tab" : "inactive-tab"}`}
+              className={`auth-tab ${
+                tab === "admin" ? "active-tab" : "inactive-tab"
+              }`}
             >
               Admin Login
             </button>
@@ -166,8 +172,8 @@ export default function Authenticate() {
                 required
                 minLength={6}
               />
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="auth-custom-button"
                 disabled={isProcessing}
               >
@@ -194,8 +200,8 @@ export default function Authenticate() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="auth-custom-button"
                 disabled={isProcessing}
               >
@@ -222,8 +228,8 @@ export default function Authenticate() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="auth-custom-button"
                 disabled={isProcessing}
               >

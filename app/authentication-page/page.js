@@ -29,17 +29,26 @@ export default function Authenticate() {
     setIsProcessing(true);
     setError("");
 
-    const result = await signup(username, email, password);
-
-    setIsProcessing(false);
-    if (!result.success) {
-      setError(result.error);
-    } else {
-      setSuccess(result.message);
-      resetForm();
-      // Switch to login tab after successful signup
-      setTab("login");
+    // Simple validation for now (will be replaced with Supabase later)
+    if (!username || !email || !password) {
+      setError("Please fill in all fields");
+      setIsProcessing(false);
+      return;
     }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      setIsProcessing(false);
+      return;
+    }
+
+    // Simulate signup success
+    setTimeout(() => {
+      setIsProcessing(false);
+      setSuccess("Account created successfully! Please log in.");
+      resetForm();
+      setTab("login");
+    }, 1000);
   };
 
   const handleLogin = async (e) => {
@@ -47,16 +56,23 @@ export default function Authenticate() {
     setIsProcessing(true);
     setError("");
 
-    const result = await login(email, password);
-
-    setIsProcessing(false);
-    if (!result.success) {
-      setError(result.error);
-    } else {
-      setSuccess("Login successful!");
-      resetForm();
-      router.push("/");
+    // Simple validation for now (will be replaced with Supabase later)
+    if (!email || !password) {
+      setError("Please fill in all fields");
+      setIsProcessing(false);
+      return;
     }
+
+    // Simulate login
+    setTimeout(() => {
+      setIsProcessing(false);
+      setSuccess("Login successful!");
+      
+      // Redirect to home page after login
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
+    }, 1000);
   };
 
   const handleAdminLogin = async (e) => {
@@ -64,19 +80,20 @@ export default function Authenticate() {
     setIsProcessing(true);
     setError("");
 
-    try {
-      // Implement your admin login logic here
-      console.log("Admin login attempt with:", adminId, password);
-      // Example: const result = await adminLogin(adminId, password);
+    // Simple validation for now (will be replaced with Supabase later)
+    if (!adminId || !password) {
+      setError("Please fill in all fields");
+      setIsProcessing(false);
+      return;
+    }
 
+    // Simulate admin login
+    setTimeout(() => {
       setIsProcessing(false);
       setSuccess("Admin login successful!");
       resetForm();
-      router.push("/admin");
-    } catch (error) {
-      setIsProcessing(false);
-      setError("Invalid admin credentials");
-    }
+      router.push("/admin-dashboard");
+    }, 1000);
   };
 
   return (

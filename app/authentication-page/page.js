@@ -67,7 +67,7 @@ export default function Authenticate() {
     setTimeout(() => {
       setIsProcessing(false);
       setSuccess("Login successful!");
-      
+
       // Redirect to home page after login
       setTimeout(() => {
         router.push("/");

@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { supabase } from "../../database/supabase";
 import "./styles.css";
 
 export default function Authenticate() {
@@ -29,7 +30,6 @@ export default function Authenticate() {
     setIsProcessing(true);
     setError("");
 
-    // Simple validation for now (will be replaced with Supabase later)
     if (!username || !email || !password) {
       setError("Please fill in all fields");
       setIsProcessing(false);
@@ -42,13 +42,17 @@ export default function Authenticate() {
       return;
     }
 
-    // Simulate signup success
-    setTimeout(() => {
-      setIsProcessing(false);
-      setSuccess("Account created successfully! Please log in.");
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      setError(error.message);
+    } else {
+      setSuccess(
+        "Account created successfully, check your email and confirm."
+      );
       resetForm();
       setTab("login");
-    }, 1000);
+    }
+    setIsProcessing(false);
   };
 
   const handleLogin = async (e) => {
@@ -56,23 +60,25 @@ export default function Authenticate() {
     setIsProcessing(true);
     setError("");
 
-    // Simple validation for now (will be replaced with Supabase later)
     if (!email || !password) {
       setError("Please fill in all fields");
       setIsProcessing(false);
       return;
     }
 
-    // Simulate login
-    setTimeout(() => {
-      setIsProcessing(false);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) {
+      setError(error.message);
+    } else {
       setSuccess("Login successful!");
-
-      // Redirect to home page after login
       setTimeout(() => {
         router.push("/");
       }, 1000);
-    }, 1000);
+    }
+    setIsProcessing(false);
   };
 
   const handleAdminLogin = async (e) => {
@@ -80,20 +86,24 @@ export default function Authenticate() {
     setIsProcessing(true);
     setError("");
 
-    // Simple validation for now (will be replaced with Supabase later)
     if (!adminId || !password) {
       setError("Please fill in all fields");
       setIsProcessing(false);
       return;
     }
 
-    // Simulate admin login
-    setTimeout(() => {
-      setIsProcessing(false);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: adminId,
+      password,
+    });
+    if (error) {
+      setError(error.message);
+    } else {
       setSuccess("Admin login successful!");
       resetForm();
       router.push("/admin-dashboard");
-    }, 1000);
+    }
+    setIsProcessing(false);
   };
 
   return (

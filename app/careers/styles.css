@@ -1,0 +1,172 @@
+/* Navbar */
+.navbar {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(139, 111, 71, 0.6);
+  transition: background-color 0.1s;
+  border-radius: 9999px;
+  padding: 12px 60px;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar:hover {
+  background-color: #8b6f47;
+}
+
+.navbar-ul {
+  display: flex;
+  gap: 50px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-li {
+  font-weight: 500;
+  font-size: 1.05rem;
+  color: #fff;
+  cursor: pointer;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  border-radius: 12px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.navbar-li:hover {
+  background: rgba(255,255,255,0.12);
+  color: #d4af37;
+}
+
+.careers-container {
+  max-width: 800px;
+  margin: 40px auto;
+  margin-top: 150px;
+  background: #232323;
+  border-radius: 18px;
+  padding: 36px 32px;
+  color: #fff;
+  box-shadow: 0 2px 24px rgba(0,0,0,0.18);
+}
+
+.careers-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 18px;
+  color: #bfa76a;
+}
+
+.careers-intro {
+  font-size: 1.15rem;
+  margin-bottom: 24px;
+}
+
+.careers-section-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+.jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.job-card {
+  background: #18140c;
+  border-radius: 14px;
+  padding: 24px 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.job-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #bfa76a;
+  margin-bottom: 6px;
+}
+
+.job-desc {
+  font-size: 1.05rem;
+  margin-bottom: 10px;
+  color: #e5d7b2;
+}
+
+.apply-btn {
+  background: #bfa76a;
+  color: #18140c;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 28px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: background 0.2s;
+}
+
+.apply-btn:hover {
+  background: #e5d7b2;
+}
+
+.career-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.career-form label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.career-form input,
+.career-form textarea {
+  margin-top: 4px;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  background: #e5e5e5;
+  color: #18140c;
+  font-size: 1rem;
+}
+
+.career-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.career-form button {
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  background: #bfa76a;
+  color: #18140c;
+}
+
+.cancel-btn {
+  background: #b65138;
+  color: #fff;
+}
+
+.job-success {
+  color: #4ca45c;
+  font-weight: 600;
+  margin-top: 8px;
+}

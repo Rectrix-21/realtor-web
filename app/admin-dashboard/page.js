@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   HomeIcon,
   ArrowLeftOnRectangleIcon,
   Bars3Icon,
   UsersIcon,
   ClipboardDocumentListIcon,
-  BuildingOffice2Icon,
+  BuildingOffice2Icon,  
 } from "@heroicons/react/24/outline";
 import "./styles.css";
 import { Line } from "react-chartjs-2";
@@ -22,6 +22,14 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import {
+  getProperties,
+  insertProperty,
+  updateProperty,
+  deleteProperty,
+  uploadPropertyImage,
+  deletePropertyImages,
+} from "../../lib/modify-property.js";
 
 ChartJS.register(
   CategoryScale,
@@ -111,20 +119,42 @@ export default function AdminDashboard() {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedClientIdx, setSelectedClientIdx] = useState(0);
+
+  // ----- Property state -----
   const [properties, setProperties] = useState([]);
   const [showPropertyForm, setShowPropertyForm] = useState(false);
-  const [editIdx, setEditIdx] = useState(null);
+  const [editIdx, setEditIdx] = useState(null); // UI index
+  const [editingId, setEditingId] = useState(null); // DB primary key (property_id)
+  const [uploadedFiles, setUploadedFiles] = useState([]); // storage paths for cleanup
+
+  // Match your Property table columns
   const [propertyForm, setPropertyForm] = useState({
-    photos: [],
-    about: "",
-    type: "",
-    mls: "",
     rooms: "",
-    price: "",
-    sqft: "",
-    lotSize: "",
-    location: "",
+    status: "",
+    washroom: "",
+    garage: "",
+    gym: "",
+    office: "",
+    recreational_room: "",
+    basement_type: "",
+    property_kind: "",
+    description: "",
+    buyer_id: "",
+    image_urls: [], // text[] of public URLs
+    sq_feet: "",
+    lot_size: "",
   });
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const rows = await getProperties();
+        setProperties(rows);
+      } catch (e) {
+        console.error("Failed to load properties:", e.message);
+      }
+    })();
+  }, []);
 
   const chartData = {
     labels: ["2019", "2020", "2021", "2022", "2023", "2024"],
@@ -147,32 +177,19 @@ export default function AdminDashboard() {
       },
     ],
   };
-
   const chartOptions = {
     responsive: true,
     plugins: {
-      legend: {
-        labels: {
-          color: "#fff",
-          font: { size: 14 },
-        },
-      },
-      title: {
-        display: false,
-      },
+      legend: { labels: { color: "#fff", font: { size: 14 } } },
+      title: { display: false },
     },
     scales: {
-      x: {
-        ticks: { color: "#fff" },
-        grid: { color: "rgba(255,255,255,0.1)" },
-      },
-      y: {
-        ticks: { color: "#fff" },
-        grid: { color: "rgba(255,255,255,0.1)" },
-      },
+      x: { ticks: { color: "#fff" }, grid: { color: "rgba(255,255,255,0.1)" } },
+      y: { ticks: { color: "#fff" }, grid: { color: "rgba(255,255,255,0.1)" } },
     },
   };
 
+  // applications filter
   const filteredApps = applicationsData.filter((app) => {
     if (filter !== "all" && app.status !== filter) return false;
     if (search && !app.name.toLowerCase().includes(search.toLowerCase()))
@@ -180,49 +197,138 @@ export default function AdminDashboard() {
     return true;
   });
 
-  function handlePropertyChange(e) {
-    const { name, value, files } = e.target;
-    if (name === "photos") {
-      setPropertyForm({ ...propertyForm, photos: files });
-    } else {
-      setPropertyForm({ ...propertyForm, [name]: value });
+  // property handlers
+  function handlePropertyFieldChange(e) {
+    const { name, value } = e.target;
+    setPropertyForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  // Upload images immediately, track files for cleanup, store public URLs
+  async function handlePropertyImageChange(e) {
+    const files = Array.from(e.target.files || []);
+    for (const file of files) {
+      try {
+        const { publicUrl, filePath } = await uploadPropertyImage(file);
+        setPropertyForm((prev) => ({
+          ...prev,
+          image_urls: [...prev.image_urls, publicUrl],
+        }));
+        setUploadedFiles((prev) => [...prev, filePath]);
+      } catch (err) {
+        console.error("Image upload failed:", err.message);
+      }
     }
   }
 
-  function handlePropertySubmit(e) {
+  async function handlePropertySubmit(e) {
     e.preventDefault();
-    if (editIdx !== null) {
-      const updated = [...properties];
-      updated[editIdx] = propertyForm;
-      setProperties(updated);
-      setEditIdx(null);
-    } else {
-      setProperties([...properties, propertyForm]);
+    const body = {
+      ...propertyForm,
+      // cast numeric fields
+      rooms: propertyForm.rooms !== "" ? parseInt(propertyForm.rooms) : null,
+      status: propertyForm.status !== "" ? parseInt(propertyForm.status) : null,
+      washroom:
+        propertyForm.washroom !== "" ? parseInt(propertyForm.washroom) : null,
+      garage: propertyForm.garage !== "" ? parseInt(propertyForm.garage) : null,
+      gym: propertyForm.gym !== "" ? parseInt(propertyForm.gym) : null,
+      office: propertyForm.office !== "" ? parseInt(propertyForm.office) : null,
+      recreational_room:
+        propertyForm.recreational_room !== ""
+          ? parseInt(propertyForm.recreational_room)
+          : null,
+      sq_feet:
+        propertyForm.sq_feet !== "" ? parseInt(propertyForm.sq_feet) : null,
+      lot_size:
+        propertyForm.lot_size !== "" ? parseInt(propertyForm.lot_size) : null,
+    };
+
+    try {
+      if (editingId) {
+        await updateProperty(editingId, body);
+      } else {
+        await insertProperty(body);
+      }
+      const rows = await getProperties();
+      setProperties(rows);
+      setUploadedFiles([]);
+    } catch (err) {
+      console.error("Save failed:", err.message);
     }
-    setPropertyForm({
-      photos: [],
-      about: "",
-      type: "",
-      mls: "",
-      rooms: "",
-      price: "",
-      sqft: "",
-      lotSize: "",
-      location: "",
-    });
+
+    // reset
+    resetPropertyForm();
     setShowPropertyForm(false);
   }
 
+  async function handleCancelPropertyForm() {
+    try {
+      await deletePropertyImages(uploadedFiles); // clean up temp uploads if user cancels form midway
+    } catch (err) {
+      console.error("Cleanup failed:", err.message);
+    }
+    resetPropertyForm();
+    setShowPropertyForm(false);
+  }
+
+  function resetPropertyForm() {
+    setPropertyForm({
+      rooms: "",
+      status: "",
+      washroom: "",
+      garage: "",
+      gym: "",
+      office: "",
+      recreational_room: "",
+      basement_type: "",
+      property_kind: "",
+      description: "",
+      buyer_id: "",
+      image_urls: [],
+      sq_feet: "",
+      lot_size: "",
+    });
+    setEditIdx(null);
+    setEditingId(null);
+    setUploadedFiles([]);
+  }
+
   function handleEdit(idx) {
-    setPropertyForm(properties[idx]);
+    const row = properties[idx];
+    setPropertyForm({
+      rooms: row.rooms ?? "",
+      status: row.status ?? "",
+      washroom: row.washroom ?? "",
+      garage: row.garage ?? "",
+      gym: row.gym ?? "",
+      office: row.office ?? "",
+      recreational_room: row.recreational_room ?? "",
+      basement_type: row.basement_type ?? "",
+      property_kind: row.property_kind ?? "",
+      description: row.description ?? "",
+      buyer_id: row.buyer_id ?? "",
+      image_urls: Array.isArray(row.image_urls) ? row.image_urls : [],
+      sq_feet: row.sq_feet ?? "",
+      lot_size: row.lot_size ?? "",
+    });
     setEditIdx(idx);
+    setEditingId(row.property_id);
     setShowPropertyForm(true);
+    setUploadedFiles([]);
   }
 
-  function handleDelete(idx) {
-    setProperties(properties.filter((_, i) => i !== idx));
+  async function handleDelete(idx) {
+    const row = properties[idx];
+    if (!row?.property_id) return;
+    try {
+      await deleteProperty(row.property_id);
+      const rows = await getProperties();
+      setProperties(rows);
+    } catch (e) {
+      console.error("Delete failed:", e.message);
+    }
   }
 
+  // ----- UI -----
   return (
     <div className="admin-container">
       {/* Sidebar */}
@@ -277,6 +383,7 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <div className="ad-main-content">
+        {/* Top bar */}
         <div className="top-bar">
           <button className="ad-top-btn ad-logout-btn">
             <ArrowLeftOnRectangleIcon width={20} height={20} /> Logout
@@ -285,6 +392,8 @@ export default function AdminDashboard() {
             <button className="ad-top-btn ad-home-btn">Home</button>
           </Link>
         </div>
+
+        {/* Dashboard */}
         {activeSection === "dashboard" && (
           <>
             <h2 className="welcome-title">Welcome Back!</h2>
@@ -314,6 +423,7 @@ export default function AdminDashboard() {
           </>
         )}
 
+        {/* Applications */}
         {activeSection === "applications" && (
           <div className="applications-dashboard-container">
             <div className="applications-header-row">
@@ -395,6 +505,8 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
+        {/* Clients */}
         {activeSection === "clients" && (
           <div className="clients-dashboard-container">
             <div className="clients-header-row">
@@ -478,6 +590,8 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
+        {/* Property */}
         {activeSection === "property" && (
           <div className="property-dashboard-container">
             <div className="property-header-row">
@@ -488,145 +602,123 @@ export default function AdminDashboard() {
                 onClick={() => {
                   setShowPropertyForm(true);
                   setEditIdx(null);
+                  setEditingId(null);
+                  setUploadedFiles([]);
                 }}
               >
                 + Add Property
               </button>
             </div>
+
             {showPropertyForm && (
               <form className="property-form" onSubmit={handlePropertySubmit}>
+                {/* Image upload */}
                 <label>
-                  Photos:
+                  Images:
                   <input
                     type="file"
-                    name="photos"
+                    name="image_urls"
                     multiple
-                    onChange={handlePropertyChange}
+                    onChange={handlePropertyImageChange}
                   />
                 </label>
-                <label>
-                  About:
-                  <textarea
-                    name="about"
-                    value={propertyForm.about}
-                    onChange={handlePropertyChange}
-                  />
-                </label>
-                <label>
-                  Type:
-                  <input
-                    name="type"
-                    value={propertyForm.type}
-                    onChange={handlePropertyChange}
-                  />
-                </label>
-                <label>
-                  MLS#:
-                  <input
-                    name="mls"
-                    value={propertyForm.mls}
-                    onChange={handlePropertyChange}
-                  />
-                </label>
-                <label>
-                  No. of Rooms:
-                  <input
-                    name="rooms"
-                    value={propertyForm.rooms}
-                    onChange={handlePropertyChange}
-                  />
-                </label>
-                <label>
-                  Price:
-                  <input
-                    name="price"
-                    value={propertyForm.price}
-                    onChange={handlePropertyChange}
-                  />
-                </label>
-                <label>
-                  Sq Feet:
-                  <input
-                    name="sqft"
-                    value={propertyForm.sqft}
-                    onChange={handlePropertyChange}
-                  />
-                </label>
-                <label>
-                  Lot Size:
-                  <input
-                    name="lotSize"
-                    value={propertyForm.lotSize}
-                    onChange={handlePropertyChange}
-                  />
-                </label>
-                <label>
-                  Location:
-                  <input
-                    name="location"
-                    value={propertyForm.location}
-                    onChange={handlePropertyChange}
-                  />
-                </label>
+
+                {/* Inputs for each column */}
+                {[
+                  "rooms",
+                  "status",
+                  "washroom",
+                  "garage",
+                  "gym",
+                  "office",
+                  "recreational_room",
+                  "basement_type",
+                  "property_kind",
+                  "description",
+                  "buyer_id",
+                  "sq_feet",
+                  "lot_size",
+                ].map((field) => (
+                  <label key={field}>
+                    {field
+                      .replace(/_/g, " ")
+                      .replace(/\b\w/g, (c) => c.toUpperCase())}
+                    :
+                    <input
+                      name={field}
+                      value={propertyForm[field]}
+                      onChange={handlePropertyFieldChange}
+                    />
+                  </label>
+                ))}
+
+                {/* Live preview of uploaded images */}
+                {propertyForm.image_urls.length > 0 && (
+                  <div style={{ display: "flex", gap: 8, margin: "8px 0" }}>
+                    {propertyForm.image_urls.map((url, i) => (
+                      <img
+                        key={i}
+                        src={url}
+                        alt="property"
+                        style={{
+                          width: 60,
+                          height: 60,
+                          objectFit: "cover",
+                          borderRadius: 8,
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+
                 <button type="submit">
                   {editIdx !== null ? "Update" : "Add"} Property
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowPropertyForm(false)}
-                >
+                <button type="button" onClick={handleCancelPropertyForm}>
                   Cancel
                 </button>
               </form>
             )}
+
             <div className="property-list">
               {properties.map((prop, idx) => (
-                <div className="property-card" key={idx}>
+                <div className="property-card" key={prop.property_id || idx}>
                   <div className="property-details">
-                    <div>
-                      <b>Type:</b> {prop.type}
-                    </div>
-                    <div>
-                      <b>MLS#:</b> {prop.mls}
-                    </div>
-                    <div>
-                      <b>Rooms:</b> {prop.rooms}
-                    </div>
-                    <div>
-                      <b>Price:</b> {prop.price}
-                    </div>
-                    <div>
-                      <b>Sq Feet:</b> {prop.sqft}
-                    </div>
-                    <div>
-                      <b>Lot Size:</b> {prop.lotSize}
-                    </div>
-                    <div>
-                      <b>Location:</b> {prop.location}
-                    </div>
-                    <div>
-                      <b className="about">About:</b> {prop.about}
-                    </div>
-                    <div>
-                      <b>Photos:</b>
-                      {prop.photos && prop.photos.length > 0 && (
-                        <div style={{ display: "flex", gap: "8px" }}>
-                          {Array.from(prop.photos).map((file, i) => (
-                            <img
-                              key={i}
-                              src={URL.createObjectURL(file)}
-                              alt="property"
-                              style={{
-                                width: "60px",
-                                height: "60px",
-                                objectFit: "cover",
-                                borderRadius: "8px",
-                              }}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    {Object.entries(prop).map(
+                      ([key, value]) =>
+                        key !== "property_id" && (
+                          <div key={key}>
+                            <b>
+                              {key
+                                .replace(/_/g, " ")
+                                .replace(/\b\w/g, (ch) => ch.toUpperCase())
+                                .replace(/\bUrls\b/i, "URLs")}
+                              :
+                            </b>{" "}
+                            {Array.isArray(value) && key === "image_urls" ? (
+                              <span style={{ display: "inline-flex", gap: 6 }}>
+                                {value.map((url, i) => (
+                                  <img
+                                    key={i}
+                                    src={url}
+                                    alt="property"
+                                    style={{
+                                      width: 60,
+                                      height: 60,
+                                      objectFit: "cover",
+                                      borderRadius: 8,
+                                    }}
+                                  />
+                                ))}
+                              </span>
+                            ) : Array.isArray(value) ? (
+                              value.join(", ")
+                            ) : (
+                              String(value ?? "")
+                            )}
+                          </div>
+                        )
+                    )}
                   </div>
                   <div className="property-actions">
                     <button onClick={() => handleEdit(idx)}>Edit</button>

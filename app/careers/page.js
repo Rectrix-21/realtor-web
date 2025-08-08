@@ -1,7 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./styles.css";
 import Link from "next/link";
+import { supabase } from "../../database/supabase";
 
 const jobs = [
   {
@@ -31,111 +32,204 @@ const jobs = [
 ];
 
 export default function CareersPage() {
-  const [showFormIdx, setShowFormIdx] = useState(null);
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    resume: null,
-    coverLetter: "",
-  });
-  const [submittedIdx, setSubmittedIdx] = useState(null);
+	const [careerOpportunity, setCareerOpportunity] = useState(null);
+	const [jobForm, setForm] = useState({
+		name: "",
+		email: "",
+		phone_number: "",
+		skills: "",
+	});
+	const [success, setSuccess] = useState(null);
+	const [error, setError] = useState("");
+	const [user, setUser] = useState(null);
 
-  function handleChange(e) {
-    const { name, value, files } = e.target;
-    if (name === "resume") {
-      setForm({ ...form, resume: files[0] });
-    } else {
-      setForm({ ...form, [name]: value });
-    }
-  }
+	useEffect(() => {
+		const fetchUser = async () => {
+			const {
+				data: { session },
+			} = await supabase.auth.getSession();
+			setUser(session?.user || null);
+		};
 
-  function handleApply(idx) {
-    setShowFormIdx(idx);
-    setSubmittedIdx(null);
-    setForm({
-      name: "",
-      email: "",
-      phone: "",
-      resume: null,
-      coverLetter: "",
-    });
-  }
+		fetchUser();
+	}, []);
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    setSubmittedIdx(showFormIdx);
-    setShowFormIdx(null);
-  }
+	function handleChange(e) {
+		const { name, value } = e.target;
 
-  return (
-    <div className="careers-container">
-        {/* Navbar */}
-      <nav className="navbar">
-        <ul className="navbar-ul">
-          <li className="navbar-li">
-            <Link href="/">Home</Link>
-          </li>
-          <li className="navbar-li">
-            <Link href="/contact">About</Link>
-          </li>
-          <li className="navbar-li">
-            <Link href="/view-listings">Properties</Link>
-          </li>
-          <li className="navbar-li">
-            <Link href="/careers">Career opportunity</Link>
-          </li>
-        </ul>
-      </nav>
-      <h1 className="careers-title">Careers at RealtorWeb</h1>
-      <p className="careers-intro">
-        Join our team and help shape the future of real estate! We value creativity, teamwork, and a passion for helping people find their dream homes.
-      </p>
-      <h2 className="careers-section-title">Open Positions</h2>
-      <div className="jobs-list">
-        {jobs.map((job, idx) => (
-          <div className="job-card" key={idx}>
-            <div className="job-info">
-              <div className="job-title">{job.title}</div>
-              <div className="job-desc">{job.description}</div>
-            </div>
-            {submittedIdx === idx ? (
-              <div className="job-success">Thank you for applying! We will review your application and contact you soon.</div>
-            ) : showFormIdx === idx ? (
-              <form className="career-form" onSubmit={handleSubmit}>
-                <label>
-                  Name:
-                  <input name="name" value={form.name} onChange={handleChange} required />
-                </label>
-                <label>
-                  Email:
-                  <input type="email" name="email" value={form.email} onChange={handleChange} required />
-                </label>
-                <label>
-                  Phone:
-                  <input name="phone" value={form.phone} onChange={handleChange} required />
-                </label>
-                <label>
-                  Resume:
-                  <input type="file" name="resume" accept=".pdf,.doc,.docx" onChange={handleChange} required />
-                </label>
-                <label>
-                  Cover Letter:
-                  <textarea name="coverLetter" value={form.coverLetter} onChange={handleChange} rows={4} />
-                </label>
-                <div className="career-form-actions">
-                  <button type="submit">Submit Application</button>
-                  <button type="button" className="cancel-btn" onClick={() => setShowFormIdx(null)}>Cancel</button>
-                </div>
-              </form>
-            ) : (
-              <button className="apply-btn" onClick={() => handleApply(idx)}>
-                Apply Now
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+		if (name === "phone_number") {
+			const phoneRegex = /^[0-9-]*$/;
+			if (!phoneRegex.test(value)) {
+				setError("Phone number can only contain numbers and dashes.");
+				return;
+			} else {
+				setError("");
+			}
+		}
+
+		setForm({ ...jobForm, [name]: value });
+	}
+
+	function handleApply(form) {
+		setCareerOpportunity(form);
+		setSuccess(null);
+		setForm({
+			name: "",
+			email: user?.email || "",
+			phone_number: "",
+			skills: "",
+		});
+	}
+
+	async function handleSubmit(e) {
+		e.preventDefault();
+		setError("");
+		setSuccess(null);
+
+		if (!user) {
+			setError("You need to be logged in to submit an application.");
+			return;
+		}
+
+		const authenticatedUserEmail = user.email;
+		if (!authenticatedUserEmail) {
+			setError(
+				"Authenticated email is required to submit the application, please log in or sign up to proceed."
+			);
+			return;
+		}
+
+		try {
+			const { data, error } = await supabase.from("Contractor").insert([
+				{
+					name: jobForm.name,
+					email: authenticatedUserEmail,
+					phone_number: jobForm.phone_number,
+					skills: jobForm.skills,
+					employment_status: "unemployed",
+				},
+			]);
+
+			if (error) {
+				setError("Failed to submit application. Please try again.");
+				console.log(error);
+			} else {
+				setSuccess({
+					index: careerOpportunity,
+					message: "Application submitted successfully!",
+				});
+				setCareerOpportunity(null);
+				setForm({
+					name: "",
+					email: "",
+					phone_number: "",
+					skills: "",
+				});
+			}
+		} catch (err) {
+			setError("An unexpected error occurred. Please try again.");
+			console.error(err);
+		}
+	}
+
+	return (
+		<div className="careers-container">
+			{/* Navbar */}
+			<nav className="navbar">
+				<ul className="navbar-ul">
+					<li className="navbar-li">
+						<Link href="/">Home</Link>
+					</li>
+					<li className="navbar-li">
+						<Link href="/contact">About</Link>
+					</li>
+					<li className="navbar-li">
+						<Link href="/view-listings">Properties</Link>
+					</li>
+					<li className="navbar-li">
+						<Link href="/careers">Career opportunity</Link>
+					</li>
+				</ul>
+			</nav>
+			<h1 className="careers-title">Careers at RealtorWeb</h1>
+			<p className="careers-intro">
+				Join our team and help shape the future of real estate! We value
+				creativity, teamwork, and a passion for helping people find their dream
+				homes.
+			</p>
+			<h2 className="careers-section-title">Open Positions</h2>
+			<div className="jobs-list">
+				{jobs.map((job, idx) => (
+					<div className="job-card" key={idx}>
+						<div className="job-info">
+							<div className="job-title">{job.title}</div>
+							<div className="job-desc">{job.description}</div>
+						</div>
+						{success?.index === idx ? (
+							<div className="job-success">{success.message}</div>
+						) : careerOpportunity === idx ? (
+							<form className="career-form" onSubmit={handleSubmit}>
+								{error && <div className="form-error">{error}</div>}
+								<label>
+									Name:
+									<input
+										name="name"
+										value={jobForm.name}
+										onChange={handleChange}
+										required
+									/>
+								</label>
+								<label>
+									Email:
+									<input
+										type="email"
+										name="email"
+										value={jobForm.email}
+										onChange={handleChange}
+										required
+									/>
+								</label>
+								<label>
+									Phone Number:
+									<input
+										name="phone_number"
+										value={jobForm.phone_number}
+										onChange={handleChange}
+										required
+									/>
+								</label>
+								<label>
+									Skills:
+									<textarea
+										name="skills"
+										value={jobForm.skills}
+										onChange={handleChange}
+										rows={4}
+										required
+									/>
+								</label>
+								<div className="career-form-actions">
+									<button type="submit">Submit Application</button>
+									<button
+										type="button"
+										className="cancel-btn"
+										onClick={() => setCareerOpportunity(null)}
+									>
+										Cancel
+									</button>
+								</div>
+							</form>
+						) : (
+							<button
+								className="apply-btn"
+								onClick={() => handleApply(idx)}
+							>
+								Apply Now
+							</button>
+						)}
+					</div>
+				))}
+			</div>
+		</div>
+	);
 }

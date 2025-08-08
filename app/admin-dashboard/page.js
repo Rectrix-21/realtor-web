@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   HomeIcon,
   ArrowLeftOnRectangleIcon,
   Bars3Icon,
   UsersIcon,
   ClipboardDocumentListIcon,
-  BuildingOffice2Icon,  
+  BuildingOffice2Icon,
 } from "@heroicons/react/24/outline";
 import "./styles.css";
 import { Line } from "react-chartjs-2";
@@ -40,33 +41,6 @@ ChartJS.register(
   Tooltip,
   Legend
 );
-
-const applicationsData = [
-  {
-    name: "John Smith",
-    date: "June 10 2025",
-    property: "Highland Gardens",
-    email: "Johnsmith1@gmail.com",
-    phone: "123-456-7890",
-    status: "pending",
-  },
-  {
-    name: "Darinda Clark",
-    date: "May 3 2025",
-    property: "Common Estates",
-    email: "Clark0darinda@gmail.com",
-    phone: "123-456-7890",
-    status: "accepted",
-  },
-  {
-    name: "Tyrese Morgan",
-    date: "June 10 2025",
-    property: "Virello Quarters",
-    email: "Tymorgan1@gmail.com",
-    phone: "123-456-7890",
-    status: "rejected",
-  },
-];
 
 const statusColors = {
   pending: "#003d74",
@@ -154,6 +128,22 @@ export default function AdminDashboard() {
         console.error("Failed to load properties:", e.message);
       }
     })();
+  }, []);
+  const [applicationsData, setApplicationsData] = useState([]);
+  const [contractorSkills, setcontractorSkills] = useState([]);
+  const [showSkillsModal, setShowSkillsModal] = useState(false);
+
+  useEffect(() => {
+    async function fetchContractors() {
+      const { data, error } = await supabase.from("Contractor").select("*");
+      if (error) {
+        console.error("Error fetching contractors:", error);
+      } else {
+        setApplicationsData(data);
+      }
+    }
+
+    fetchContractors();
   }, []);
 
   const chartData = {
@@ -328,6 +318,109 @@ export default function AdminDashboard() {
     }
   }
 
+  async function UpdateContractorEnploymentStatus(employeeId, newStatus) {
+    try {
+      const { data, error } = await supabase
+        .from("Contractor")
+        .update({ employment_status: newStatus })
+        .eq("employee_id", employeeId);
+
+      if (error) {
+        console.error("Error updating application status:", error);
+      } else {
+        console.log("Update successful. Data:", data);
+      }
+
+      const { data: refetchedData, error: refetchError } = await supabase
+        .from("Contractor")
+        .select("*");
+      if (refetchError) {
+        console.error("Error refetching contractors:", refetchError);
+      } else {
+        setApplicationsData(refetchedData);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+    }
+  }
+
+  function handleStatusChange(employeeId, currentElement) {
+    const existingDropdown = document.querySelector(".status-dropdown");
+    if (existingDropdown) {
+      existingDropdown.remove();
+    }
+
+    const dropdownoption = document.createElement("select");
+    dropdownoption.className = "status-dropdown";
+
+    const options = ["Application Status", "Hired", "Fired", "Pending"];
+
+    options.forEach((option, index) => {
+      const optionElement = document.createElement("option");
+      optionElement.value = index === 0 ? "" : option;
+      optionElement.textContent = option;
+      optionElement.disabled = index === 0;
+      optionElement.selected = index === 0;
+      dropdownoption.appendChild(optionElement);
+    });
+
+    // Style the dropdown
+    dropdownoption.style.position = "absolute";
+    dropdownoption.style.top = `${
+      currentElement.offsetTop + currentElement.offsetHeight
+    }px`;
+    dropdownoption.style.left = `${currentElement.offsetLeft}px`;
+    dropdownoption.style.padding = "4px"; // Reduced padding for smaller size
+    dropdownoption.style.border = "1px solid #444"; // Dark border for consistency
+    dropdownoption.style.borderRadius = "4px";
+    dropdownoption.style.backgroundColor = "#333"; // Dark background
+    dropdownoption.style.color = "#fff"; // White text for visibility
+    dropdownoption.style.fontSize = "12px"; // Smaller font size
+    dropdownoption.style.cursor = "pointer";
+    dropdownoption.style.zIndex = "1000"; // Ensure it appears above other elements
+
+    dropdownoption.addEventListener("change", async () => {
+      const newStatus = dropdownoption.value;
+      if (newStatus) {
+        await UpdateContractorEnploymentStatus(employeeId, newStatus);
+        currentElement.textContent = newStatus.toUpperCase();
+        currentElement.style.background =
+          newStatus === "Hired"
+            ? "#0c7400"
+            : newStatus === "Fired"
+            ? "#740000"
+            : "#003d74";
+        dropdownoption.remove();
+      }
+    });
+
+    document.body.appendChild(dropdownoption);
+  }
+
+  async function fetchContractorSkills(employeeId) {
+    try {
+      console.log("Fetching skills for employee_id:", employeeId);
+      const { data, error } = await supabase
+        .from("Contractor")
+        .select("skills")
+        .eq("employee_id", employeeId);
+
+      if (error) {
+        console.error("Error fetching skills:", error);
+      } else if (data.length === 0) {
+        console.warn("No skills found for employee_id:", employeeId);
+        setcontractorSkills([]);
+        setShowSkillsModal(true);
+      } else {
+        console.log("Fetched skills:", data[0].skills);
+        setcontractorSkills(data[0].skills);
+        setShowSkillsModal(true);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+    }
+  }
+
   // ----- UI -----
   return (
     <div className="admin-container">
@@ -360,13 +453,13 @@ export default function AdminDashboard() {
           </li>
           <li
             className={`menu-item ${
-              activeSection === "applications" ? "active" : ""
+              activeSection === "jobPortal" ? "active" : ""
             }`}
-            onClick={() => setActiveSection("applications")}
+            onClick={() => setActiveSection("jobPortal")}
           >
             <ClipboardDocumentListIcon width={20} height={20} />
             {isSidebarOpen && (
-              <span className="menu-item-text">Applications</span>
+              <span className="menu-item-text">Job Portal</span>
             )}
           </li>
           <li
@@ -380,7 +473,6 @@ export default function AdminDashboard() {
           </li>
         </ul>
       </div>
-
       {/* Main Content */}
       <div className="ad-main-content">
         {/* Top bar */}
@@ -480,25 +572,54 @@ export default function AdminDashboard() {
                 />
               </div>
             </div>
-            <div className="applications-list">
+            <div className="contractor-list">
               {filteredApps.map((app, idx) => (
                 <div className="application-card" key={idx}>
                   <div className="application-info">
-                    <div className="application-name">{app.name}</div>
-                    <div className="application-date">{app.date}</div>
-                    <div className="application-property">{app.property}</div>
-                    <div className="application-contact">
-                      {app.email} &nbsp;|&nbsp; {app.phone}
+                    <div className="contractor-name">
+                      {app?.name || "Unknown"}
+                    </div>
+                    <div className="contractor-date">{app?.date || "N/A"}</div>
+                    <div className="contractor-contact">
+                      {app?.email || "N/A"} &nbsp;|&nbsp;{" "}
+                      {app?.phone_number || "N/A"}
                     </div>
                   </div>
-                  <div className="application-actions">
+                  {/* Contractor Actions */}
+                  <div className="contractor-actions">
                     <span
-                      className="application-status"
-                      style={{ background: statusColors[app.status] }}
+                      className="contractor-status"
+                      style={{
+                        background: statusColors[app?.status] || "#000",
+                        color: "#fff",
+                        padding: "6px 12px",
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                      }}
+                      onClick={(event) =>
+                        handleStatusChange(app?.employee_id, event.target)
+                      }
                     >
-                      {app.status.toUpperCase()}
+                      {app?.employment_status?.toUpperCase() || "UNKNOWN"}
                     </span>
-                    <button className="application-more-btn">MORE INFO</button>
+                    <button
+                      className="contractor-more-btn"
+                      style={{
+                        marginLeft: "8px",
+                        padding: "6px 12px",
+                        backgroundColor: "#444",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => fetchContractorSkills(app?.employee_id)}
+                    >
+                      MORE INFO
+                    </button>
                   </div>
                 </div>
               ))}
@@ -559,10 +680,8 @@ export default function AdminDashboard() {
                     value={clientsData[selectedClientIdx].note}
                     readOnly
                   />
-                  <div className="client-profile-properties">
-                    Saved Properties:{" "}
-                    {clientsData[selectedClientIdx].savedProperties}
-                  </div>
+                  Saved Properties:{" "}
+                  {clientsData[selectedClientIdx].savedProperties}
                 </div>
                 <div className="lead-stage-tracker">
                   <div className="lead-stage-title">Lead Stage Tracker</div>
@@ -726,6 +845,89 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Job Portal Section */}
+        {activeSection === "jobPortal" && (
+          <div className="job-portal-dashboard-container">
+            <div className="job-portal-header-row">
+              <div className="job-portal-title-row">
+                <ClipboardDocumentListIcon
+                  width={38}
+                  height={38}
+                  color="#e5d7b2"
+                />
+                <h1 className="job-portal-title">Job Portal</h1>
+              </div>
+            </div>
+            <div className="contractor-list">
+              {applicationsData.map((app, idx) => (
+                <div className="application-card" key={idx}>
+                  <div className="application-info">
+                    <div className="contractor-name">
+                      {app?.name || "Unknown"}
+                    </div>
+                    <div className="contractor-date">{app?.date || "N/A"}</div>
+                    <div className="contractor-contact">
+                      {app?.email || "N/A"} &nbsp;|&nbsp;{" "}
+                      {app?.phone_number || "N/A"}
+                    </div>
+                  </div>
+                  {/* Contractor Actions */}
+                  <div className="contractor-actions">
+                    <span
+                      className="contractor-status"
+                      style={{
+                        background: statusColors[app?.status] || "#000",
+                        color: "#fff",
+                        padding: "6px 12px",
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                      }}
+                      onClick={(event) =>
+                        handleStatusChange(app?.employee_id, event.target)
+                      }
+                    >
+                      {app?.employment_status?.toUpperCase() || "UNKNOWN"}
+                    </span>
+                    <button
+                      className="contractor-more-btn"
+                      style={{
+                        marginLeft: "8px",
+                        padding: "6px 12px",
+                        backgroundColor: "#444",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => fetchContractorSkills(app?.employee_id)}
+                    >
+                      MORE INFO
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Skills Popup */}
+        {showSkillsModal && (
+          <div className="skills-popup">
+            <div className="skills-popup-content">
+              <h2>Applicant Skills</h2>
+              <p>
+                {Array.isArray(contractorSkills)
+                  ? contractorSkills.join(", ")
+                  : contractorSkills || "No skills available."}
+              </p>
+              <button onClick={() => setShowSkillsModal(false)}>Close</button>
             </div>
           </div>
         )}

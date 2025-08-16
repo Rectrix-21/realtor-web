@@ -1,43 +1,33 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import "./styles.css";
-
-const listings = [
-  {
-    id: 1,
-    address: "7944 Huntwick Crescent NE",
-    price: "$699,900",
-    beds: "5 Beds",
-    size: "1,050 Sq.Ft.",
-    baths: "2 Baths",
-    image: "/images/house1.jpg",
-    details: [],
-  },
-  {
-    id: 2,
-    address: "145 Point Dr NW #903",
-    price: "$389,900",
-    beds: "2 Beds",
-    size: "965 Sq.Ft.",
-    baths: "1F 1.5 Baths",
-    image: "/images/house2.jpg",
-    details: [],
-  },
-  {
-    id: 3,
-    address: "248 Kinniburgh Blvd #38",
-    price: "$409,900",
-    beds: "2 Beds",
-    size: "1,383 Sq.Ft.",
-    baths: "2 Baths",
-    image: "/images/house3.jpg",
-    details: [],
-  },
-];
+import { supabase } from "../../database/supabase"; // adjust if your path differs
 
 export default function Listings() {
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      setErr("");
+      const { data, error } = await supabase
+        .from("Property")
+        .select(
+          "property_id, description, rooms, sq_feet, washroom, image_urls"
+        )
+        .order("property_id", { ascending: true });
+
+      if (error) setErr(error.message);
+      else setProperties(data || []);
+      setLoading(false);
+    })();
+  }, []);
+
   return (
     <div className="listings-container">
       {/* Navbar */}
@@ -69,39 +59,71 @@ export default function Listings() {
         </div>
       </div>
 
-      {/* Listings Grid */}
-      <div className="listings-grid">
-        {listings.map((listing) => (
-          <Link
-            href={`/view-listings/${listing.id}`}
-            key={listing.id}
-            className="listing-link"
-          >
-            <div className="listing-card">
-              <Image
-                src={listing.image}
-                alt={listing.address}
-                width={300}
-                height={200}
-                className="listing-image"
-              />
-              <div className="listing-info">
-                <div className="listing-address">{listing.address}</div>
-                <div className="listing-price">{listing.price}</div>
-                <div className="listing-details">
-                  <span>{listing.beds}</span>
-                  <span>{listing.size}</span>
-                </div>
-                <div className="listing-details">
-                  <span>{listing.baths}</span>
-                </div>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+      {loading && (
+        <div
+          style={{
+            padding: 16,
+            textAlign: "center",
+            fontSize: "1.5rem",
+            fontWeight: "500",
+          }}
+        >
+          Loading listings…
+        </div>
+      )}
+      {err && <div style={{ padding: 16, color: "salmon" }}>Error: {err}</div>}
 
-      {/* Pagination */}
+      {/* Listings Grid */}
+      {!loading && !err && (
+        <div className="listings-grid">
+          {properties.map((p) => {
+            const img =
+              Array.isArray(p.image_urls) && p.image_urls[0]
+                ? p.image_urls[0]
+                : "/images/placeholder-house.jpg"; // add a placeholder in /public if you want
+
+            return (
+              <Link
+                href={`/view-listings/${p.property_id}`}
+                key={p.property_id}
+                className="listing-link"
+              >
+                <div className="listing-card">
+                  <Image
+                    src={img}
+                    alt={p.description || "Property"}
+                    width={300}
+                    height={200}
+                    className="listing-image"
+                  />
+                  <div className="listing-info">
+                    <div className="listing-address">
+                      {p.description || "—"}
+                    </div>
+                    {/* You don't have a price column in your schema; hide or replace */}
+                    {/* <div className="listing-price">{p.price ?? "—"}</div> */}
+                    <div className="listing-details">
+                      <span>
+                        {p.rooms != null ? `${p.rooms} Beds` : "Beds —"}
+                      </span>
+                      <span>
+                        {p.sq_feet != null ? `${p.sq_feet} Sq.Ft.` : "Size —"}
+                      </span>
+                    </div>
+                    <div className="listing-details">
+                      <span>
+                        {p.washroom != null ? `${p.washroom} Baths` : "Baths —"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Pagination (static for now) */}
       <div className="pagination">
         <span className="pagination-arrow">{"<"}</span>
         <span className="pagination-page active">1</span>

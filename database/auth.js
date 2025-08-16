@@ -1,134 +1,148 @@
 "use client";
-import { useState, useEffect, createContext, useContext } from "react";
-import supabase from "./supabase";
-import { useRouter } from "next/navigation";
+import { createContext, useContext, useEffect, useState } from "react";
+import { supabase } from "@/database/supabase";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
+  const [role, setRole] = useState(null); // "admin" | "buyer" | null
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const [user, setUser] = useState(null);
 
-  // Initialize auth state
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setSession(session);
-      setLoading(false);
+  async function signup(email, password, username) {
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange((event, session) => {
-        setSession(session);
-      });
+    if (error) return { data, error };
 
-      return () => subscription?.unsubscribe();
-    };
+    console.log("Signup data:", data);
 
-    initializeAuth();
-  }, []);
+    const { error: insertError } = await supabase.from("Buyer").insert({
+      buyer_id: data.user.id,
+      name: username,
+      email: email,
+    });
 
-  const login = async (email, password) => {
+    if (insertError) {
+      console.error("Buyer insert failed:", insertError.message);
+    }
+
+    return { data, error: null };
+  }
+
+  async function login(email, password) {
     try {
+      console.log("Attempting to log in...");
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
-      return { success: true, user: data.user };
-    } catch (error) {
-      console.error("Login error:", error);
-      return {
-        success: false,
-        error: "Invalid email or password",
-      };
-    }
-  };
-
-  const signup = async (username, email, password) => {
-    try {
-      // 1. Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { username },
-        },
-      });
-
-      if (authError) throw authError;
-
-      // 2. Insert into public.Users table
-      const { error: dbError } = await supabase.from("Users").insert({
-        user_id: authData.user?.id,
-        username,
-        email,
-        created_at: new Date().toISOString(),
-      });
-
-      if (dbError) {
-        // Attempt to delete auth user if DB insert fails
-        try {
-          if (authData.user?.id) {
-            await supabase.auth.admin.deleteUser(authData.user.id);
-          }
-        } catch (deleteError) {
-          console.error("Failed to rollback auth user:", deleteError);
-        }
-        throw dbError;
+      if (error) {
+        console.error("Error during login:", error);
+      } else {
+        console.log("Login successful, data:", data);
       }
 
-      return {
-        success: true,
-        user: authData.user,
-        message: "Account created successfully! Please log in.",
-      };
-    } catch (error) {
-      console.error("Signup error:", error);
-      let errorMessage = "Signup failed. Please try again.";
+      setUser(data?.user || null);
+      return { data, error };
+    } catch (err) {
+      console.error("Unexpected error during login:", err);
+      return { data: null, error: err };
+    }
+  }
 
-      if (/duplicate|already exists/i.test(error.message)) {
-        errorMessage = "Email already registered";
+  async function signOut() {
+    console.log("Signing out user...");
+    console.log("Current session before sign out:", session);
+    const { error } = await supabase.auth.signOut();
+    console.log("Signing out...");
+    if (error) {
+      console.error("Error during sign out:", error);
+    }
+    setSession(null);
+    setUser(null);
+    setRole(null);
+  }
+
+  async function fetchRole(uidArg) {
+    let uid = uidArg;
+    if (!uid) {
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data?.user) {
+        setRole(null);
+        return;
       }
-
-      return { success: false, error: errorMessage };
+      uid = data.user.id;
     }
-  };
 
-  const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      setSession(null);
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
+    const [
+      { data: adminRow, error: adminErr },
+      { data: buyerRow, error: buyerErr },
+    ] = await Promise.all([
+      supabase
+        .from("Admin")
+        .select("admin_id")
+        .eq("admin_id", uid)
+        .maybeSingle(),
+      supabase
+        .from("Buyer")
+        .select("buyer_id")
+        .eq("buyer_id", uid)
+        .maybeSingle(),
+    ]);
+
+    if (adminErr || buyerErr) {
+      setRole(null);
+      return;
     }
-  };
+    setRole(adminRow ? "admin" : buyerRow ? "buyer" : null);
+  }
+
+  useEffect(() => {
+    let mounted = true;
+    console.log("AuthProvider mounted, fetching session...");
+    (async () => {
+      console.log("Fetching session...");
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+      if (!mounted) return;
+      console.log("Session fetched:", session);
+      if (error || !session) {
+        setSession(null);
+        setUser(null);
+        setRole(null);
+      } else {
+        console.log("Session is valid, setting state...");
+        setSession(session);
+        setUser(session.user);
+        await fetchRole(session.user.id);
+      }
+      setLoading(false);
+    })();
+
+    const { data: sub } = supabase.auth.onAuthStateChange(
+      async (_evt, sess) => {
+        setSession(sess ?? null);
+        setUser(sess?.user ?? null);
+        await fetchRole(sess?.user?.id ?? null);
+      }
+    );
+
+    return () => sub?.subscription?.unsubscribe();
+  }, []);
 
   return (
     <AuthContext.Provider
-      value={{
-        session,
-        loading,
-        login,
-        signup,
-        signOut,
-      }}
+      value={{ session, role, loading, signup, login, signOut, user }}
     >
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+export function useAuth() {
+  return useContext(AuthContext);
+}

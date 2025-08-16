@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useState, useEffect } from "react";
 import {
   HomeIcon,
   ArrowLeftOnRectangleIcon,
@@ -31,6 +30,9 @@ import {
   uploadPropertyImage,
   deletePropertyImages,
 } from "../../lib/modify-property.js";
+import { supabase } from "../../database/supabase.js";
+import { useAuth } from "../../database/auth.js";
+import { useRouter } from "next/navigation";
 
 ChartJS.register(
   CategoryScale,
@@ -88,18 +90,25 @@ const clientsData = [
 ];
 
 export default function AdminDashboard() {
+  const { role, loading } = useAuth();
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeSection, setActiveSection] = useState("dashboard");
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedClientIdx, setSelectedClientIdx] = useState(0);
 
-  // ----- Property state -----
+  // property state
   const [properties, setProperties] = useState([]);
   const [showPropertyForm, setShowPropertyForm] = useState(false);
   const [editIdx, setEditIdx] = useState(null); // UI index
   const [editingId, setEditingId] = useState(null); // DB primary key (property_id)
   const [uploadedFiles, setUploadedFiles] = useState([]); // storage paths for cleanup
+
+  //applications state
+  const [applicationsData, setApplicationsData] = useState([]);
+  const [contractorSkills, setcontractorSkills] = useState([]);
+  const [showSkillsModal, setShowSkillsModal] = useState(false);
 
   // Match your Property table columns
   const [propertyForm, setPropertyForm] = useState({
@@ -129,9 +138,6 @@ export default function AdminDashboard() {
       }
     })();
   }, []);
-  const [applicationsData, setApplicationsData] = useState([]);
-  const [contractorSkills, setcontractorSkills] = useState([]);
-  const [showSkillsModal, setShowSkillsModal] = useState(false);
 
   useEffect(() => {
     async function fetchContractors() {
@@ -140,11 +146,21 @@ export default function AdminDashboard() {
         console.error("Error fetching contractors:", error);
       } else {
         setApplicationsData(data);
+        console.log("Contractors fetched:", data);
       }
     }
 
     fetchContractors();
   }, []);
+
+  // useEffect(() => {
+  //   if (role !== "admin") {
+  //     // Redirect to home if not admin
+  //     router.push("/");
+  //   }
+  // }, [role]);
+
+  if (loading) return null;
 
   const chartData = {
     labels: ["2019", "2020", "2021", "2022", "2023", "2024"],
@@ -344,81 +360,68 @@ export default function AdminDashboard() {
     }
   }
 
-  function handleStatusChange(employeeId, currentElement) {
-    const existingDropdown = document.querySelector(".status-dropdown");
-    if (existingDropdown) {
-      existingDropdown.remove();
-    }
+  async function handleStatusChange(employeeId, currentElement) {
+    // remove any open dropdown
+    const existing = document.querySelector(".status-dropdown");
+    if (existing) existing.remove();
 
-    const dropdownoption = document.createElement("select");
-    dropdownoption.className = "status-dropdown";
+    const dd = document.createElement("select");
+    dd.className = "status-dropdown";
 
-    const options = ["Application Status", "Hired", "Fired", "Pending"];
-
-    options.forEach((option, index) => {
-      const optionElement = document.createElement("option");
-      optionElement.value = index === 0 ? "" : option;
-      optionElement.textContent = option;
-      optionElement.disabled = index === 0;
-      optionElement.selected = index === 0;
-      dropdownoption.appendChild(optionElement);
+    ["Application Status", "Hired", "Fired", "Pending"].forEach((txt, i) => {
+      const opt = document.createElement("option");
+      opt.value = i === 0 ? "" : txt;
+      opt.textContent = txt;
+      opt.disabled = i === 0;
+      opt.selected = i === 0;
+      dd.appendChild(opt);
     });
 
-    // Style the dropdown
-    dropdownoption.style.position = "absolute";
-    dropdownoption.style.top = `${
-      currentElement.offsetTop + currentElement.offsetHeight
-    }px`;
-    dropdownoption.style.left = `${currentElement.offsetLeft}px`;
-    dropdownoption.style.padding = "4px"; // Reduced padding for smaller size
-    dropdownoption.style.border = "1px solid #444"; // Dark border for consistency
-    dropdownoption.style.borderRadius = "4px";
-    dropdownoption.style.backgroundColor = "#333"; // Dark background
-    dropdownoption.style.color = "#fff"; // White text for visibility
-    dropdownoption.style.fontSize = "12px"; // Smaller font size
-    dropdownoption.style.cursor = "pointer";
-    dropdownoption.style.zIndex = "1000"; // Ensure it appears above other elements
+    // position directly under the clicked element
+    const r = currentElement.getBoundingClientRect();
+    const gap = 4; // small space under the button
 
-    dropdownoption.addEventListener("change", async () => {
-      const newStatus = dropdownoption.value;
-      if (newStatus) {
-        await UpdateContractorEnploymentStatus(employeeId, newStatus);
-        currentElement.textContent = newStatus.toUpperCase();
-        currentElement.style.background =
-          newStatus === "Hired"
-            ? "#0c7400"
-            : newStatus === "Fired"
-            ? "#740000"
-            : "#003d74";
-        dropdownoption.remove();
+    dd.style.position = "fixed";
+    dd.style.top = `${r.bottom + gap}px`;
+    dd.style.left = `${r.left}px`;
+    dd.style.width = `${r.width}px`; // match trigger width
+    dd.style.maxWidth = "1000px"; // never overflow viewport
+    dd.style.zIndex = "1000";
+
+    // minimal styling (kept small)
+    dd.style.padding = "4px";
+    dd.style.border = "1px solid #444";
+    dd.style.borderRadius = "4px";
+    dd.style.backgroundColor = "#333";
+    dd.style.color = "#fff";
+    dd.style.fontSize = "12px";
+    dd.style.cursor = "pointer";
+
+    document.body.appendChild(dd);
+
+    // clamp horizontally if near the right edge
+    requestAnimationFrame(() => {
+      const dw = dd.offsetWidth;
+      if (r.left + dw > window.innerWidth - 8) {
+        dd.style.left = `${Math.max(8, window.innerWidth - dw - 8)}px`;
       }
     });
 
-    document.body.appendChild(dropdownoption);
-  }
+    dd.addEventListener("change", async () => {
+      const newStatus = dd.value;
+      if (!newStatus) return;
 
-  async function fetchContractorSkills(employeeId) {
-    try {
-      console.log("Fetching skills for employee_id:", employeeId);
-      const { data, error } = await supabase
-        .from("Contractor")
-        .select("skills")
-        .eq("employee_id", employeeId);
+      await UpdateContractorEnploymentStatus(employeeId, newStatus);
+      currentElement.textContent = newStatus.toUpperCase();
+      currentElement.style.background =
+        newStatus === "Hired"
+          ? "#0c7400"
+          : newStatus === "Fired"
+          ? "#740000"
+          : "#003d74";
 
-      if (error) {
-        console.error("Error fetching skills:", error);
-      } else if (data.length === 0) {
-        console.warn("No skills found for employee_id:", employeeId);
-        setcontractorSkills([]);
-        setShowSkillsModal(true);
-      } else {
-        console.log("Fetched skills:", data[0].skills);
-        setcontractorSkills(data[0].skills);
-        setShowSkillsModal(true);
-      }
-    } catch (err) {
-      console.error("Unexpected error:", err);
-    }
+      dd.remove();
+    });
   }
 
   // ----- UI -----
@@ -579,7 +582,6 @@ export default function AdminDashboard() {
                     <div className="contractor-name">
                       {app?.name || "Unknown"}
                     </div>
-                    <div className="contractor-date">{app?.date || "N/A"}</div>
                     <div className="contractor-contact">
                       {app?.email || "N/A"} &nbsp;|&nbsp;{" "}
                       {app?.phone_number || "N/A"}
@@ -914,21 +916,22 @@ export default function AdminDashboard() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Skills Popup */}
-        {showSkillsModal && (
-          <div className="skills-popup">
-            <div className="skills-popup-content">
-              <h2>Applicant Skills</h2>
-              <p>
-                {Array.isArray(contractorSkills)
-                  ? contractorSkills.join(", ")
-                  : contractorSkills || "No skills available."}
-              </p>
-              <button onClick={() => setShowSkillsModal(false)}>Close</button>
-            </div>
+            {/* Skills Popup */}
+            {showSkillsModal && (
+              <div className="skills-popup">
+                <div className="skills-popup-content">
+                  <h2>Applicant Skills</h2>
+                  <p>
+                    {Array.isArray(contractorSkills)
+                      ? contractorSkills.join(", ")
+                      : contractorSkills || "No skills available."}
+                  </p>
+                  <button onClick={() => setShowSkillsModal(false)}>
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

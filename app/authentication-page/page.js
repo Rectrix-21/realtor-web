@@ -1,13 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../database/supabase";
+import { useAuth } from "../../database/auth";
 import "./styles.css";
 
 export default function Authenticate() {
   const router = useRouter();
+  const { role, loading, login, signup, user } = useAuth();
+
   const [tab, setTab] = useState("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,6 +18,14 @@ export default function Authenticate() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    console.log("email:", email);
+    console.log("password:", password);
+    if (user) {
+      router.push("/");
+    }
+  }, [email, password, user]);
 
   const resetForm = () => {
     setEmail("");
@@ -42,43 +52,48 @@ export default function Authenticate() {
       return;
     }
 
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await signup(email, password, username);
     if (error) {
       setError(error.message);
     } else {
-      setSuccess(
-        "Account created successfully, check your email and confirm."
-      );
+      setSuccess("Account created successfully.");
       resetForm();
       setTab("login");
     }
     setIsProcessing(false);
   };
 
+  const redirectByRole = () => {
+    setTimeout(() => {
+      if (role === "admin") router.push("/admin-dashboard");
+      else router.push("/");
+    }, 250);
+  };
+
   const handleLogin = async (e) => {
+    console.log("login clicked");
     e.preventDefault();
+    if (isProcessing) return;
+    console.log("email:", email);
+    console.log("password:", password);
+
     setIsProcessing(true);
     setError("");
+    setSuccess("");
 
-    if (!email || !password) {
-      setError("Please fill in all fields");
-      setIsProcessing(false);
-      return;
-    }
+    try {
+      if (!email || !password) throw new Error("Please fill in all fields");
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) {
-      setError(error.message);
-    } else {
+      const res = await login(email, password); // must always return { data, error }
+      const err = res?.error;
+      if (err) throw new Error(err.message);
+
       setSuccess("Login successful!");
-      setTimeout(() => {
-        router.push("/");
-      }, 1000);
+    } catch (err) {
+      setError(err?.message || "Login failed");
+    } finally {
+      setIsProcessing(false);
     }
-    setIsProcessing(false);
   };
 
   const handleAdminLogin = async (e) => {
@@ -92,16 +107,19 @@ export default function Authenticate() {
       return;
     }
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: adminId,
-      password,
-    });
+    const { error } = await login(adminId, password);
     if (error) {
       setError(error.message);
     } else {
-      setSuccess("Admin login successful!");
-      resetForm();
-      router.push("/admin-dashboard");
+      setTimeout(() => {
+        if (role === "admin") {
+          setSuccess("Admin login successful!");
+          resetForm();
+          router.push("/admin-dashboard");
+        } else {
+          setError("You are not authorized as an admin.");
+        }
+      }, 250);
     }
     setIsProcessing(false);
   };
@@ -258,7 +276,7 @@ export default function Authenticate() {
               <button
                 type="submit"
                 className="auth-custom-button"
-                disabled={isProcessing}
+                disabled={isProcessing || loading}
               >
                 {isProcessing ? "Verifying..." : "Admin Login"}
               </button>

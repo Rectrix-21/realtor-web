@@ -2,14 +2,16 @@
 
 /* run npm install @heroicons/react */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import "./styles.css";
+import { useAuth } from "../database/auth";
 
 export default function Home() {
   const [aboutOpen, setAboutOpen] = useState(false);
+  const { role, signOut, user } = useAuth();
   const [propertiesOpen, setPropertiesOpen] = useState(false);
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
 
@@ -17,6 +19,9 @@ export default function Home() {
     e.stopPropagation();
     console.log(`${item} clicked`);
   };
+
+  console.log("role is", role);
+  console.log("user is", user);
 
   return (
     <div className="container">
@@ -37,12 +42,28 @@ export default function Home() {
         <span className="home-icon">&#127969;</span> HAVENLY
       </div>
 
-      {/* Sign Up Button */}
-      <div className="signup-btn">
-        <Link href="/authentication-page">
-          <button className="custom-button-home">Sign Up</button>
-        </Link>
-      </div>
+      {user ? (
+        <div className="signup-btn">
+          <button
+            className="custom-button-home"
+            onClick={async (e) => {
+              e.preventDefault();
+              console.log("SignOut button clicked"); // should print
+              console.log("typeof signOut:", typeof signOut); // should be "function"
+              const res = await signOut();
+              console.log("after signOut()", res);
+            }}
+          >
+            Sign Out
+          </button>
+        </div>
+      ) : (
+        <div className="signup-btn">
+          <Link href="/authentication-page">
+            <button className="custom-button-home">Sign Up</button>
+          </Link>
+        </div>
+      )}
 
       {/* Navbar */}
       <nav className="navbar">
@@ -59,14 +80,20 @@ export default function Home() {
           <li className="navbar-li">
             <Link href="/careers">Career opportunity</Link>
           </li>
+          <li>
+            {role === "admin" ? (
+              <div className="navbar-li">
+                <Link href="/admin-dashboard">Admin Dashboard</Link>
+              </div>
+            ) : null}
+          </li>
         </ul>
       </nav>
 
       {/* Main Content */}
       <div className="main-content">
         <h1>
-          <span className="bold-text">Haven</span>{" "}
-          <span className="light-text">ly</span>
+          <span className="light-text">Havenly</span>
         </h1>
         <p className="subtitle">Turning Your Vision Of The Perfect Home</p>
 

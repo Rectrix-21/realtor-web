@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import {
   HomeIcon,
   ArrowLeftOnRectangleIcon,
@@ -110,6 +110,9 @@ export default function AdminDashboard() {
   const [contractorSkills, setcontractorSkills] = useState([]);
   const [showSkillsModal, setShowSkillsModal] = useState(false);
 
+  // variable to watch for
+  const [currentRole, setCurrentRole] = useState(null);
+
   // Match your Property table columns
   const [propertyForm, setPropertyForm] = useState({
     rooms: "",
@@ -126,7 +129,11 @@ export default function AdminDashboard() {
     image_urls: [], // text[] of public URLs
     sq_feet: "",
     lot_size: "",
+    // NEW: price
+    price: "",
   });
+
+  console.log("User role:", role);
 
   useEffect(() => {
     (async () => {
@@ -153,14 +160,24 @@ export default function AdminDashboard() {
     fetchContractors();
   }, []);
 
-  // useEffect(() => {
-  //   if (role !== "admin") {
-  //     // Redirect to home if not admin
-  //     router.push("/");
-  //   }
-  // }, [role]);
+  useEffect(() => {
+    //log images
+    console.log("Uploaded files:", uploadedFiles);
+    console.log("Property form data:", propertyForm);
+  }, [uploadedFiles, propertyForm]);
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (role !== "admin") {
+    router.push("/"); // redirect if not admin
+    return null; // prevent rendering anything else
+  }
 
   const chartData = {
     labels: ["2019", "2020", "2021", "2022", "2023", "2024"],
@@ -228,6 +245,7 @@ export default function AdminDashboard() {
 
   async function handlePropertySubmit(e) {
     e.preventDefault();
+    console.log("Submitting property form with data:", propertyForm);
     const body = {
       ...propertyForm,
       // cast numeric fields
@@ -246,10 +264,12 @@ export default function AdminDashboard() {
         propertyForm.sq_feet !== "" ? parseInt(propertyForm.sq_feet) : null,
       lot_size:
         propertyForm.lot_size !== "" ? parseInt(propertyForm.lot_size) : null,
+      price: propertyForm.price !== "" ? parseInt(propertyForm.price) : null,
     };
 
     try {
       if (editingId) {
+        console.log("Updating property with ID:", editingId);
         await updateProperty(editingId, body);
       } else {
         await insertProperty(body);
@@ -292,6 +312,7 @@ export default function AdminDashboard() {
       image_urls: [],
       sq_feet: "",
       lot_size: "",
+      price: "",
     });
     setEditIdx(null);
     setEditingId(null);
@@ -315,6 +336,7 @@ export default function AdminDashboard() {
       image_urls: Array.isArray(row.image_urls) ? row.image_urls : [],
       sq_feet: row.sq_feet ?? "",
       lot_size: row.lot_size ?? "",
+      price: row.price ?? "",
     });
     setEditIdx(idx);
     setEditingId(row.property_id);
@@ -756,9 +778,9 @@ export default function AdminDashboard() {
                   "basement_type",
                   "property_kind",
                   "description",
-                  "buyer_id",
                   "sq_feet",
                   "lot_size",
+                  "price",
                 ].map((field) => (
                   <label key={field}>
                     {field

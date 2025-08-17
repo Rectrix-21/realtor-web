@@ -14,6 +14,8 @@ export default function Home() {
   const { role, signOut, user } = useAuth();
   const [propertiesOpen, setPropertiesOpen] = useState(false);
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userRole, setUserRole] = useState(null);
 
   const handleDropdownItemClick = (e, item) => {
     e.stopPropagation();
@@ -22,6 +24,18 @@ export default function Home() {
 
   console.log("role is", role);
   console.log("user is", user);
+
+  useEffect(() => {
+    if (user) {
+      setCurrentUser(user);
+      setUserRole(role);
+      console.log("Current user:", user);
+      console.log("User role:", role);
+    } else {
+      setCurrentUser(null);
+      setUserRole(null);
+    }
+  }, [user, role]);
 
   return (
     <div className="container">
@@ -42,7 +56,7 @@ export default function Home() {
         <span className="home-icon">&#127969;</span> HAVENLY
       </div>
 
-      {user ? (
+      {currentUser ? (
         <div className="signup-btn">
           <button
             className="custom-button-home"
@@ -81,7 +95,7 @@ export default function Home() {
             <Link href="/careers">Career opportunity</Link>
           </li>
           <li>
-            {role === "admin" ? (
+            {userRole === "admin" ? (
               <div className="navbar-li">
                 <Link href="/admin-dashboard">Admin Dashboard</Link>
               </div>

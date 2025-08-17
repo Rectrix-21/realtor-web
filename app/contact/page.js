@@ -49,17 +49,16 @@ export default function Contact() {
         <div className="mission-box">
           <h1 className="mission-title">OUR MISSION</h1>
           <p className="mission-desc">
-            Bricks Development isn’t just a real estate company — it’s a
-            family-owned venture rooted in community values, driven by a vision
-            to redefine urban living through thoughtful design and enduring
-            quality. With decades of collective experience, our team brings
-            every project to life with precision, passion, and a deep respect
-            for timeless architectural principles. We collaborate with trusted
-            partners and suppliers to ensure exceptional craftsmanship and
-            meaningful value, while our unwavering commitment to customer
-            satisfaction extends far beyond project completion. At Bricks
-            Development, we don’t just build properties — we create spaces where
-            people truly feel at home.
+            Havenly isn’t just a real estate company — it’s a family-owned
+            venture rooted in community values, driven by a vision to redefine
+            urban living through thoughtful design and enduring quality. With
+            decades of collective experience, our team brings every project to
+            life with precision, passion, and a deep respect for timeless
+            architectural principles. We collaborate with trusted partners and
+            suppliers to ensure exceptional craftsmanship and meaningful value,
+            while our unwavering commitment to customer satisfaction extends far
+            beyond project completion. At Havenly, we don’t just build
+            properties — we create spaces where people truly feel at home.
           </p>
         </div>
       </section>
@@ -83,12 +82,8 @@ export default function Contact() {
             and presentation.
             <br />
             <br />
-            At Heavenly, attention to detail is at the heart of everything we
-            do.
+            At Havenly, attention to detail is at the heart of everything we do.
           </div>
-          <Link href="/projects">
-            <button className="projects-btn">PROJECTS</button>
-          </Link>
         </div>
         <div className="projects-gallery">
           <div className="gallery-img-wrapper">

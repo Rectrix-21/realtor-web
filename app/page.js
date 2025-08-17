@@ -2,7 +2,7 @@
 
 /* run npm install @heroicons/react */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
@@ -11,11 +11,10 @@ import { useAuth } from "../database/auth";
 
 export default function Home() {
   const [aboutOpen, setAboutOpen] = useState(false);
-  const { role, signOut, user } = useAuth();
   const [propertiesOpen, setPropertiesOpen] = useState(false);
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [userRole, setUserRole] = useState(null);
+
+  const { role, signOut, user, loading } = useAuth();
 
   const handleDropdownItemClick = (e, item) => {
     e.stopPropagation();
@@ -25,17 +24,9 @@ export default function Home() {
   console.log("role is", role);
   console.log("user is", user);
 
-  useEffect(() => {
-    if (user) {
-      setCurrentUser(user);
-      setUserRole(role);
-      console.log("Current user:", user);
-      console.log("User role:", role);
-    } else {
-      setCurrentUser(null);
-      setUserRole(null);
-    }
-  }, [user, role]);
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="container">
@@ -56,14 +47,14 @@ export default function Home() {
         <span className="home-icon">&#127969;</span> HAVENLY
       </div>
 
-      {currentUser ? (
+      {user ? (
         <div className="signup-btn">
           <button
             className="custom-button-home"
             onClick={async (e) => {
               e.preventDefault();
-              console.log("SignOut button clicked"); // should print
-              console.log("typeof signOut:", typeof signOut); // should be "function"
+              console.log("SignOut button clicked");
+              console.log("typeof signOut:", typeof signOut);
               const res = await signOut();
               console.log("after signOut()", res);
             }}
@@ -95,7 +86,7 @@ export default function Home() {
             <Link href="/careers">Career opportunity</Link>
           </li>
           <li>
-            {userRole === "admin" ? (
+            {role === "admin" ? (
               <div className="navbar-li">
                 <Link href="/admin-dashboard">Admin Dashboard</Link>
               </div>

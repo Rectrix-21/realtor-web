@@ -7,11 +7,10 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: SUPABASE_HOST, // e.g. abcdxyz.supabase.co
-        pathname: "/storage/v1/object/public/**", // your public buckets
+        hostname: SUPABASE_HOST,
+        pathname: "/storage/v1/object/public/**",
       },
     ],
-    // or simpler: domains: [SUPABASE_HOST],
   },
 };
 

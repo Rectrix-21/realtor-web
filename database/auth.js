@@ -8,8 +8,12 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null); // "admin" | "buyer" | null
-  const [loading, setLoading] = useState(true); // stays true until role is known
+  const [loading, setLoading] = useState(true);
 
+  console.log("user:", user);
+  console.log("role:", role);
+
+  console.log("loading:", loading);
   async function signup(email, password, username) {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (!error) {
@@ -39,10 +43,7 @@ export function AuthProvider({ children }) {
   }
 
   async function fetchRole(uid) {
-    if (!uid) {
-      setRole(null);
-      return;
-    }
+    if (!uid) return null;
     const [{ data: a }, { data: b }] = await Promise.all([
       supabase
         .from("Admin")
@@ -55,36 +56,65 @@ export function AuthProvider({ children }) {
         .eq("buyer_id", uid)
         .maybeSingle(),
     ]);
-    setRole(a ? "admin" : b ? "buyer" : null);
+    return a ? "admin" : b ? "buyer" : null;
   }
 
   useEffect(() => {
     let alive = true;
 
     (async () => {
-      setLoading(true);
+      try {
+        console.log("[AuthProvider] calling supabase.auth.getSession()");
+        const { data, error } = await supabase.auth.getSession();
+        console.log("data:", data);
+        console.log("Checking alive:", alive);
+        if (!alive) return;
 
-      // Restore session on first mount
-      const { data: sessData } = await supabase.auth.getSession();
-      const sess = sessData?.session ?? null;
+        if (error) {
+          console.error("[AuthProvider] getSession error:", error);
+        } else {
+          console.log("[AuthProvider] getSession data:", data);
+        }
 
-      if (!alive) return;
-      setSession(sess);
-      setUser(sess?.user ?? null);
+        const sess = data?.session ?? null;
+        setSession(sess);
+        setUser(sess?.user ?? null);
 
-      // Fetch role for restored session (if any)
-      await fetchRole(sess?.user?.id ?? null);
-
-      if (!alive) return;
-      setLoading(false);
+        const roleResult = await fetchRole(sess?.user?.id ?? null);
+        if (!alive) return;
+        setRole(roleResult ?? null);
+      } catch (e) {
+        console.error("[AuthProvider] getSession threw:", e);
+        if (!alive) return;
+        setRole(null);
+      } finally {
+        if (!alive) return;
+        setLoading(false);
+        console.log("[AuthProvider] effect done");
+      }
     })();
 
-    // Keep role in sync with future auth changes
+    // 2) Listen for later changes
     const { data: sub } = supabase.auth.onAuthStateChange(
-      async (_evt, sess) => {
+      async (event, sess) => {
+        if (!alive) return;
+
         setSession(sess ?? null);
         setUser(sess?.user ?? null);
-        await fetchRole(sess?.user?.id ?? null);
+
+        if (
+          event === "SIGNED_IN" ||
+          event === "USER_UPDATED" ||
+          event === "TOKEN_REFRESHED"
+        ) {
+          // update role quietly
+          const roleResult = await fetchRole(sess?.user?.id ?? null);
+          if (alive) setRole(roleResult ?? null);
+        }
+
+        if (event === "SIGNED_OUT") {
+          setRole(null);
+        }
       }
     );
 

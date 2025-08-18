@@ -59,13 +59,29 @@ export function AuthProvider({ children }) {
     return a ? "admin" : b ? "buyer" : null;
   }
 
+  function withTimeout(promise, ms, label = "operation") {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error(`${label} timed out after ${ms}ms`)),
+          ms
+        )
+      ),
+    ]);
+  }
+
   useEffect(() => {
     let alive = true;
 
     (async () => {
       try {
-        console.log("[AuthProvider] calling supabase.auth.getSession()");
-        const { data, error } = await supabase.auth.getSession();
+        console.log("[AuthProvider] calling supabase.auth.getSession()ss");
+        const { data, error } = await withTimeout(
+          supabase.auth.getSession(),
+          5000,
+          "getSession"
+        );
         console.log("data:", data);
         console.log("Checking alive:", alive);
         if (!alive) return;
@@ -80,12 +96,27 @@ export function AuthProvider({ children }) {
         setSession(sess);
         setUser(sess?.user ?? null);
 
-        const roleResult = await fetchRole(sess?.user?.id ?? null);
-        if (!alive) return;
-        setRole(roleResult ?? null);
+        // Guard and timeout role fetch to avoid hanging UI
+        if (sess?.user?.id) {
+          console.log("[AuthProvider] Fetching role for UID:", sess.user.id);
+          try {
+            const role = await withTimeout(
+              fetchRole(sess.user.id),
+              5000,
+              "fetchRole"
+            );
+            setRole(role);
+          } catch (e) {
+            console.error("[AuthProvider] fetchRole failed:", e);
+            setRole(null);
+          }
+        } else {
+          setRole(null);
+        }
       } catch (e) {
         console.error("[AuthProvider] getSession threw:", e);
-        if (!alive) return;
+        setSession(null);
+        setUser(null);
         setRole(null);
       } finally {
         if (!alive) return;

@@ -24,10 +24,6 @@ export default function Home() {
   console.log("role is", role);
   console.log("user is", user);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div className="container">
       {/* Background Image */}

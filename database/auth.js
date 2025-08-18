@@ -44,7 +44,7 @@ export function AuthProvider({ children }) {
 
   async function fetchRole(uid) {
     if (!uid) return null;
-    
+
     try {
       // Add timeout for database queries as well
       const fetchWithTimeout = Promise.race([
@@ -60,9 +60,9 @@ export function AuthProvider({ children }) {
             .eq("buyer_id", uid)
             .maybeSingle(),
         ]),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('fetchRole timeout')), 3000)
-        )
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("fetchRole timeout")), 3000)
+        ),
       ]);
 
       const [{ data: a }, { data: b }] = await fetchWithTimeout;
@@ -83,9 +83,9 @@ export function AuthProvider({ children }) {
         supabase.auth.getSession(),
         new Promise((_, reject) => {
           timeoutId = setTimeout(() => {
-            reject(new Error('getSession timeout after 5 seconds'));
+            reject(new Error("getSession timeout after 5 seconds"));
           }, 5000);
-        })
+        }),
       ]);
     };
 
@@ -100,11 +100,11 @@ export function AuthProvider({ children }) {
     (async () => {
       try {
         console.log("[AuthProvider] calling supabase.auth.getSession()");
-        
+
         // Try to get session with timeout
         const { data, error } = await getSessionWithTimeout();
         clearSessionTimeout();
-        
+
         console.log("data:", data);
         console.log("Checking alive:", alive);
         if (!alive) return;
@@ -117,7 +117,7 @@ export function AuthProvider({ children }) {
           setRole(null);
         } else {
           console.log("[AuthProvider] getSession data:", data);
-          
+
           const sess = data?.session ?? null;
           setSession(sess);
           setUser(sess?.user ?? null);
@@ -141,7 +141,7 @@ export function AuthProvider({ children }) {
         console.error("[AuthProvider] getSession threw:", e);
         clearSessionTimeout();
         if (!alive) return;
-        
+
         // If getSession fails (including timeout), set default values
         setSession(null);
         setUser(null);
@@ -171,7 +171,10 @@ export function AuthProvider({ children }) {
             const roleResult = await fetchRole(sess?.user?.id ?? null);
             if (alive) setRole(roleResult ?? null);
           } catch (roleError) {
-            console.error("[AuthProvider] Error fetching role on auth change:", roleError);
+            console.error(
+              "[AuthProvider] Error fetching role on auth change:",
+              roleError
+            );
             if (alive) setRole(null);
           }
         }

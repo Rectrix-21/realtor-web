@@ -185,12 +185,6 @@ export default function SavedProperties() {
           <ProfileBanner />
         </div>
       )}
-
-      <div className="listings-header">
-        <h1>My Saved Properties</h1>
-        <p>Your bookmarked properties ({bookmarks.length})</p>
-      </div>
-
       {error && (
         <div className="error-message">
           {error}

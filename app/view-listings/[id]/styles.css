@@ -60,27 +60,98 @@
   color: #e0e0e0;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
 .schedule-btn {
   background: #bfa76a;
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 8px 24px;
+  padding: 12px 24px;
   font-weight: 600;
   font-size: 1rem;
-  margin-top: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.schedule-btn:hover {
+  background: #d4af37;
+  transform: translateY(-1px);
+}
+
+.schedule-btn:disabled {
+  background: #666;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.bookmark-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 2px solid #bfa76a;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bookmark-btn:hover {
+  background: rgba(191, 167, 106, 0.2);
+  border-color: #d4af37;
+  transform: translateY(-1px);
+}
+
+.bookmark-btn.bookmarked {
+  background: rgba(191, 167, 106, 0.3);
+  border-color: #d4af37;
+  color: #d4af37;
+}
+
+.bookmark-btn:disabled {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: #666;
+  color: #666;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .property-info-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 300px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  justify-items: center;
+  align-items: center;
   border-top: 1px solid #bfa76a;
   border-bottom: 1px solid #bfa76a;
-  padding: 20px 0;
+  padding: 20px 32px;
   margin: 0;
   font-size: 1.05rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.property-info-row span {
+  text-align: center;
+  white-space: nowrap;
+  color: #e0e0e0;
+}
+
+.property-info-row span b {
+  color: #bfa76a;
+  font-weight: 600;
 }
 
 .property-info-row + .property-info-row {
@@ -104,11 +175,11 @@
 }
 
 .mortgage-calc {
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   border-radius: 16px;
   padding: 32px 40px;
   min-width: 280px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -176,7 +247,7 @@
   font-weight: 700;
   font-size: 1.2rem;
   margin: 50 auto;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
   position: relative;
 }
 
@@ -185,7 +256,7 @@
   position: absolute;
   top: 18px;
   left: 18px;
-  width: 114px;   /* 150px - 2*18px */
+  width: 114px; /* 150px - 2*18px */
   height: 114px;
   background: #18140c; /* match your card background */
   border-radius: 50%;
@@ -220,8 +291,6 @@
   vertical-align: middle;
 }
 
-
-
 .schools-section {
   margin: 40px 0 0 0;
   text-align: center;
@@ -250,7 +319,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   position: relative;
 }
 
@@ -311,7 +380,7 @@
   background: rgba(191, 167, 106, 0.08);
   border-radius: 14px;
   padding: 22px 28px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   position: relative;
 }
 
@@ -373,7 +442,7 @@
   object-fit: cover;
   width: 900px;
   height: 400px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
 }
 
 .thumbnail-row {
@@ -442,7 +511,6 @@
 
 /* Navbar */
 .navbar {
-  
   position: fixed;
   top: 30px;
   left: 50%;
@@ -483,6 +551,269 @@
 }
 
 .navbar-li:hover {
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
   color: #d4af37;
+}
+
+/* Viewing Modal Styles */
+.viewing-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.viewing-modal {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid #333;
+}
+
+.viewing-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 24px 16px 24px;
+  border-bottom: 1px solid #333;
+}
+
+.viewing-modal-header h3 {
+  margin: 0;
+  color: #bfa76a;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.viewing-modal-close {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.viewing-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.viewing-modal-content {
+  padding: 24px;
+}
+
+.property-summary {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: rgba(191, 167, 106, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid #bfa76a;
+}
+
+.property-summary h4 {
+  margin: 0 0 8px 0;
+  color: #bfa76a;
+  font-size: 1.1rem;
+}
+
+.property-summary p {
+  margin: 0;
+  color: #ccc;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.viewing-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.viewing-form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.viewing-form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.viewing-form-group label {
+  color: #bfa76a;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.viewing-form-group input,
+.viewing-form-group select,
+.viewing-form-group textarea {
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #666;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.viewing-form-group input:focus,
+.viewing-form-group select:focus,
+.viewing-form-group textarea:focus {
+  outline: none;
+  border-color: #bfa76a;
+  box-shadow: 0 0 0 2px rgba(191, 167, 106, 0.2);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.viewing-form-group input::placeholder,
+.viewing-form-group textarea::placeholder {
+  color: #ccc;
+}
+
+.viewing-form-group input:disabled,
+.viewing-form-group select:disabled,
+.viewing-form-group textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.viewing-form-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.viewing-btn-cancel,
+.viewing-btn-submit {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.viewing-btn-cancel {
+  background: transparent;
+  color: #ccc;
+  border: 1px solid #666;
+}
+
+.viewing-btn-cancel:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.viewing-btn-submit {
+  background: #bfa76a;
+  color: #000;
+}
+
+.viewing-btn-submit:hover:not(:disabled) {
+  background: #a89660;
+  transform: translateY(-1px);
+}
+
+.viewing-btn-cancel:disabled,
+.viewing-btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.viewing-error {
+  padding: 12px 16px;
+  background: rgba(255, 107, 107, 0.1);
+  border-left: 3px solid #ff6b6b;
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.viewing-success {
+  padding: 12px 16px;
+  background: rgba(76, 175, 80, 0.1);
+  border-left: 3px solid #4caf50;
+  color: #4caf50;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .property-info-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 16px 20px;
+    font-size: 0.95rem;
+  }
+
+  .mortgage-section {
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .listing-about h2 {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .property-info-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+
+  .property-info-row span {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(191, 167, 106, 0.2);
+  }
+
+  .property-info-row span:last-child {
+    border-bottom: none;
+  }
+}
+@media (max-width: 768px) {
+  .viewing-modal {
+    margin: 10px;
+    max-width: none;
+  }
+
+  .viewing-form-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .viewing-modal-content {
+    padding: 20px;
+  }
 }

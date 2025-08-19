@@ -8,13 +8,13 @@ import Link from "next/link";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import "./styles.css";
 import { useAuth } from "../database/auth";
+import ProfileBanner from "../components/ProfileBanner";
 
 export default function Home() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [propertiesOpen, setPropertiesOpen] = useState(false);
-  const [adminLoggedIn, setAdminLoggedIn] = useState(false);
 
-  const { role, signOut, user, loading } = useAuth();
+  const { role, user, loading } = useAuth();
 
   const handleDropdownItemClick = (e, item) => {
     e.stopPropagation();
@@ -49,18 +49,7 @@ export default function Home() {
 
       {user ? (
         <div className="signup-btn">
-          <button
-            className="custom-button-home"
-            onClick={async (e) => {
-              e.preventDefault();
-              console.log("SignOut button clicked");
-              console.log("typeof signOut:", typeof signOut);
-              const res = await signOut();
-              console.log("after signOut()", res);
-            }}
-          >
-            Sign Out
-          </button>
+          <ProfileBanner />
         </div>
       ) : (
         <div className="signup-btn">
@@ -82,6 +71,11 @@ export default function Home() {
           <li className="navbar-li">
             <Link href="/view-listings">Properties</Link>
           </li>
+          {user && (
+            <li className="navbar-li">
+              <Link href="/saved-properties">❤️ Saved</Link>
+            </li>
+          )}
           <li className="navbar-li">
             <Link href="/careers">Career opportunity</Link>
           </li>

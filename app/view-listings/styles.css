@@ -12,10 +12,8 @@ body {
   background: linear-gradient(45deg, #000, #241b0c 50%, #000 100%) !important;
 }
 
-
 /* Navbar */
 .navbar {
-  
   position: fixed;
   top: 30px;
   left: 50%;
@@ -56,7 +54,7 @@ body {
 }
 
 .navbar-li:hover {
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
   color: #d4af37;
 }
 
@@ -65,12 +63,12 @@ body {
   display: flex;
   align-items: center;
   gap: 24px;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   border-radius: 24px;
   padding: 18px 48px;
   margin: 150px auto 0 auto;
   width: fit-content;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .view-btn {
@@ -94,16 +92,102 @@ body {
 
 .sort-section {
   margin-left: 32px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sort-button {
   display: flex;
   align-items: center;
   gap: 8px;
+  background: none;
+  border: none;
   color: #d4af37;
   font-weight: 500;
   font-size: 1.1rem;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
-.sort-icon {
-  font-size: 1.2rem;
+.sort-button:hover {
+  background: rgba(212, 175, 55, 0.1);
+}
+
+.sort-chevron {
+  transition: transform 0.2s ease;
+  font-size: 0.8rem;
+}
+
+.sort-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.sort-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: rgba(0, 0, 0, 0.95);
+  border: 1px solid #333;
+  border-radius: 12px;
+  min-width: 180px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  z-index: 20;
+}
+
+.sort-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+.sort-option:hover {
+  background-color: rgba(212, 175, 55, 0.1);
+}
+
+.sort-option.active {
+  background-color: rgba(212, 175, 55, 0.2);
+  color: #d4af37;
+}
+
+.sort-order-indicator {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+/* Listings Info */
+.listings-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 40px auto 20px auto;
+  max-width: 1200px;
+  padding: 0 20px;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+.property-count {
+  font-weight: 500;
+  color: #d4af37;
+}
+
+.sort-info {
+  font-style: italic;
 }
 
 /* Listings Grid */
@@ -122,21 +206,64 @@ body {
 }
 
 .listing-card {
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   border-radius: 20px;
   padding: 28px 24px;
   width: 340px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
   text-align: left;
   transition: transform 0.18s, box-shadow 0.18s;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+}
+
+.listing-card-wrapper {
+  position: relative;
+}
+
+.listing-image-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.listing-bookmark-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+}
+
+.listing-bookmark-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.listing-bookmark-btn.bookmarked {
+  background: rgba(191, 167, 106, 0.9);
+}
+
+.listing-bookmark-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .listing-card:hover {
   transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 8px 32px rgba(212,175,55,0.12);
+  box-shadow: 0 8px 32px rgba(212, 175, 55, 0.12);
 }
 
 .listing-image {
@@ -145,7 +272,7 @@ body {
   height: 200px;
   object-fit: cover;
   margin-bottom: 18px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .listing-info {
@@ -215,5 +342,5 @@ body {
 }
 
 .pagination-arrow:hover {
-  background: rgba(212,175,55,0.12);
+  background: rgba(212, 175, 55, 0.12);
 }

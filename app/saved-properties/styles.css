@@ -150,6 +150,7 @@
 
 .listing-card-wrapper {
   position: relative;
+  margin-top: 100px;
 }
 
 .listing-card-link {

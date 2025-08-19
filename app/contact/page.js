@@ -3,8 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import "./styles.css";
+import { useAuth } from "../../database/auth";
 
 export default function Contact() {
+  const { user } = useAuth();
+
   return (
     <div className="contact-page-container">
       {/* Navbar */}
@@ -28,6 +31,11 @@ export default function Contact() {
           <li className="navbar-li">
             <Link href="/careers">Career opportunity</Link>
           </li>
+          {user && (
+            <li className="navbar-li">
+              <Link href="/my-applications">My Applications</Link>
+            </li>
+          )}
         </ul>
       </nav>
 

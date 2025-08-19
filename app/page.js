@@ -73,12 +73,17 @@ export default function Home() {
           </li>
           {user && (
             <li className="navbar-li">
-              <Link href="/saved-properties">❤️ Saved</Link>
+              <Link href="/saved-properties">Saved</Link>
             </li>
           )}
           <li className="navbar-li">
             <Link href="/careers">Career opportunity</Link>
           </li>
+          {user && (
+            <li className="navbar-li">
+              <Link href="/my-applications">My Applications</Link>
+            </li>
+          )}
           <li>
             {role === "admin" ? (
               <div className="navbar-li">

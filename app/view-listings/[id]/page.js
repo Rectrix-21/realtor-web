@@ -19,18 +19,22 @@ function mapStatus(code) {
 }
 
 function mapBasement(code) {
-  if (code === "c") return "Crawlspace";
-  if (code === "w") return "Walkout";
-  if (code === "f") return "Full";
+  if (code === "c") return "Concrete";
+  if (code === "w") return "Wood";
+  if (code === "f") return "Finished";
   if (code === "p") return "Partial";
   return String(code ?? "—");
 }
 
 function mapPropertyKind(code) {
-  if (code === "c") return "Condominium";
-  if (code === "b") return "Bungalow";
-  if (code === "t") return "Townhouse";
-  if (code === "d") return "Detached";
+  if (code === "H") return "House";
+  if (code === "C") return "Condo";
+  if (code === "T") return "Townhouse";
+  if (code === "A") return "Apartment";
+  if (code === "L") return "Land/Lot";
+  if (code === "D") return "Duplex";
+  if (code === "V") return "Villa";
+  if (code === "M") return "Mobile/Manufactured";
   return String(code ?? "—");
 }
 

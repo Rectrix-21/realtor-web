@@ -9,6 +9,27 @@ import { getProperties } from "../../lib/modify-property";
 import { useAuth } from "../../database/auth";
 import { isBookmarked, toggleBookmark } from "../../lib/bookmarks";
 
+// Helper functions to convert database codes to readable text
+function mapBasement(code) {
+  if (code === "c") return "Concrete";
+  if (code === "w") return "Wood";
+  if (code === "f") return "Finished";
+  if (code === "p") return "Partial";
+  return String(code ?? "—");
+}
+
+function mapPropertyKind(code) {
+  if (code === "H") return "House";
+  if (code === "C") return "Condo";
+  if (code === "T") return "Townhouse";
+  if (code === "A") return "Apartment";
+  if (code === "L") return "Land/Lot";
+  if (code === "D") return "Duplex";
+  if (code === "V") return "Villa";
+  if (code === "M") return "Mobile/Manufactured";
+  return String(code ?? "—");
+}
+
 export default function Listings() {
   const { user, loading: authLoading } = useAuth();
   const [properties, setProperties] = useState([]);
@@ -241,6 +262,11 @@ export default function Listings() {
           <li className="navbar-li">
             <Link href="/careers">Career opportunity</Link>
           </li>
+          {user && (
+            <li className="navbar-li">
+              <Link href="/my-applications">My Applications</Link>
+            </li>
+          )}
         </ul>
       </nav>
 
@@ -381,6 +407,18 @@ export default function Listings() {
                           {p.washroom != null
                             ? `${p.washroom} Washrooms`
                             : "Baths —"}
+                        </span>
+                        <span>
+                          {p.property_kind
+                            ? mapPropertyKind(p.property_kind)
+                            : "Type —"}
+                        </span>
+                      </div>
+                      <div className="listing-details">
+                        <span>
+                          {p.basement_type
+                            ? `Basement: ${mapBasement(p.basement_type)}`
+                            : "Basement —"}
                         </span>
                       </div>
                     </div>

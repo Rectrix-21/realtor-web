@@ -60,8 +60,9 @@ export default function Listings() {
       try {
         const data = await getProperties();
         const rows = Array.isArray(data)
-          ? data.filter((p) => String(p.status) === "1")
+          ? data.filter((p) => p.buyer_id == null)
           : [];
+
         setProperties(rows);
       } catch (error) {
         setErr(error?.message || "Failed to fetch properties");
@@ -314,6 +315,8 @@ export default function Listings() {
           )}
         </div>
       </div>
+
+      {console.log("current loading state:", loading)}
 
       {loading && (
         <div

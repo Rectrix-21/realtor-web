@@ -32,6 +32,7 @@ export function AuthProvider({ children }) {
   }
 
   async function signOut() {
+    console.log("[AuthProvider] Signing out user:", user?.id);
     await supabase.auth.signOut();
     setSession(null);
     setUser(null);

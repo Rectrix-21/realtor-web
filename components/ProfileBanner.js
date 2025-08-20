@@ -256,7 +256,7 @@ export default function ProfileBanner() {
 
               <hr className="profile-divider" />
 
-              <button className="profile-menu-item" onClick={signOut}>
+              <button className="profile-menu-item" onClick={() => signOut()}>
                 <svg
                   width="16"
                   height="16"

@@ -388,10 +388,13 @@ export default function AdminDashboard() {
 
   // Upload images immediately, track files for cleanup, store public URLs
   async function handlePropertyImageChange(e) {
+    console.log("Hello");
     const files = Array.from(e.target.files || []);
+    console.log("Selected files:", files);
     for (const file of files) {
       try {
         const { publicUrl, filePath } = await uploadPropertyImage(file);
+        console.log("Uploaded file:", file.name, "Public URL:", publicUrl);
         setPropertyForm((prev) => ({
           ...prev,
           image_urls: [...prev.image_urls, publicUrl],

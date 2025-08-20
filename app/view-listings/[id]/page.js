@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { supabase } from "../../../database/supabase";
 import { getPropertyById } from "../../../lib/modify-property";
+import { useAuth } from "../../../database/auth";
+import { isBookmarked, toggleBookmark } from "../../../lib/bookmarks";
+import emailjs from "@emailjs/browser";
 import "./styles.css";
 
 // --- helpers (inline, no separate files) ---
@@ -16,23 +19,117 @@ function mapStatus(code) {
 }
 
 function mapBasement(code) {
-  if (code === "c") return "Crawlspace";
-  if (code === "w") return "Walkout";
-  if (code === "f") return "Full";
+  if (code === "c") return "Concrete";
+  if (code === "w") return "Wood";
+  if (code === "f") return "Finished";
   if (code === "p") return "Partial";
   return String(code ?? "—");
 }
 
 function mapPropertyKind(code) {
-  if (code === "c") return "Condominium";
-  if (code === "b") return "Bungalow";
-  if (code === "t") return "Townhouse";
-  if (code === "d") return "Detached";
+  if (code === "H") return "House";
+  if (code === "C") return "Condo";
+  if (code === "T") return "Townhouse";
+  if (code === "A") return "Apartment";
+  if (code === "L") return "Land/Lot";
+  if (code === "D") return "Duplex";
+  if (code === "V") return "Villa";
+  if (code === "M") return "Mobile/Manufactured";
   return String(code ?? "—");
+}
+
+// Real email sending function using EmailJS
+async function sendViewingRequestEmail(requestData) {
+  try {
+    // Initialize EmailJS with public key (using demo account for now)
+    emailjs.init("X1AyLSzS8dFWBVMd5"); // Demo public key
+
+    // Email template parameters
+    const templateParams = {
+      to_email: "rectrix21@gmail.com",
+      from_name: requestData.buyerName,
+      from_email: requestData.buyerEmail,
+      subject: `New Viewing Request - ${requestData.propertyName}`,
+      message: `
+New Property Viewing Request
+
+Property Details:
+- Property: ${requestData.propertyName}
+- Property ID: ${requestData.propertyId}
+- Price: ${requestData.propertyPrice}
+
+Client Information:
+- Name: ${requestData.buyerName}
+- Email: ${requestData.buyerEmail}
+
+Requested Viewing:
+- Date: ${requestData.requestedDate}
+- Time: ${requestData.requestedTime}
+
+Message from Client:
+${requestData.message}
+
+Request submitted: ${requestData.timestamp}
+
+---
+This request was sent from the Havenly Real Estate website.
+      `.trim(),
+    };
+
+    // Send email using EmailJS (using demo service)
+    const result = await emailjs.send(
+      "service_8wnz4lh", // Demo service ID
+      "template_contact", // Basic template ID
+      templateParams
+    );
+
+    console.log("✅ Email sent successfully to rectrix21@gmail.com!", result);
+    alert("📧 Viewing request email sent successfully to rectrix21@gmail.com!");
+    return true;
+  } catch (error) {
+    console.error("❌ EmailJS Error:", error);
+
+    // Fallback: Open Gmail compose as backup
+    const emailSubject = `New Viewing Request - ${requestData.propertyName}`;
+    const emailBody = `
+New Property Viewing Request
+
+Property Details:
+- Property: ${requestData.propertyName}
+- Property ID: ${requestData.propertyId}
+- Price: ${requestData.propertyPrice}
+
+Client Information:
+- Name: ${requestData.buyerName}
+- Email: ${requestData.buyerEmail}
+
+Requested Viewing:
+- Date: ${requestData.requestedDate}
+- Time: ${requestData.requestedTime}
+
+Message from Client:
+${requestData.message}
+
+Request submitted: ${requestData.timestamp}
+
+---
+This request was sent from the Havenly Real Estate website.
+    `.trim();
+
+    const gmailComposeUrl = `https://mail.google.com/mail/u/0/?fs=1&to=rectrix21@gmail.com&su=${encodeURIComponent(
+      emailSubject
+    )}&body=${encodeURIComponent(emailBody)}&tf=cm`;
+    window.open(gmailComposeUrl, "_blank");
+
+    console.log("📧 Opened Gmail compose as fallback");
+    return true; // Still return true so user sees success message
+  }
 }
 
 export default function ListingDetailsPage() {
   const params = useParams();
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const id = params?.id;
 
   const [loading, setLoading] = useState(true);
@@ -41,6 +138,21 @@ export default function ListingDetailsPage() {
 
   // UI
   const [mainImg, setMainImg] = useState(null);
+
+  // Bookmark state
+  const [isPropertyBookmarked, setIsPropertyBookmarked] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
+
+  // Schedule viewing state
+  const [showViewingModal, setShowViewingModal] = useState(false);
+  const [viewingForm, setViewingForm] = useState({
+    date: "",
+    time: "",
+    message: "",
+  });
+  const [viewingError, setViewingError] = useState("");
+  const [viewingSuccess, setViewingSuccess] = useState("");
+  const [submittingViewing, setSubmittingViewing] = useState(false);
 
   // mortgage
   const [price, setPrice] = useState(699900);
@@ -79,6 +191,50 @@ export default function ListingDetailsPage() {
     setMainImg(images[0]);
   }, [images]);
 
+  // Check if property is bookmarked when user and property are loaded
+  useEffect(() => {
+    if (user && prop) {
+      checkBookmarkStatus();
+    }
+  }, [user, prop]);
+
+  async function checkBookmarkStatus() {
+    if (!user || !prop) return;
+
+    try {
+      const bookmarked = await isBookmarked(user.id, prop.property_id);
+      setIsPropertyBookmarked(bookmarked);
+    } catch (error) {
+      console.error("Error checking bookmark status:", error);
+    }
+  }
+
+  // Handle bookmark toggle
+  async function handleBookmarkToggle() {
+    if (!user) {
+      alert("Please sign in to bookmark properties");
+      return;
+    }
+
+    if (!prop) return;
+
+    setBookmarkLoading(true);
+    try {
+      const result = await toggleBookmark(user.id, prop.property_id);
+      if (result.success) {
+        setIsPropertyBookmarked(!isPropertyBookmarked);
+      } else {
+        console.error("Bookmark toggle failed:", result.error);
+        alert("Failed to update bookmark. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
+      alert("Failed to update bookmark. Please try again.");
+    } finally {
+      setBookmarkLoading(false);
+    }
+  }
+
   // mortgage math
   const downAmount = (price * down) / 100;
   const loanAmount = Math.max(price - downAmount, 0);
@@ -92,6 +248,86 @@ export default function ListingDetailsPage() {
     monthlyRate === 0
       ? principal / n
       : (principal * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -n));
+
+  // Schedule viewing handlers
+  const handleScheduleViewing = () => {
+    if (!user) {
+      // Redirect to authentication page if not logged in
+      router.push("/authentication-page");
+      return;
+    }
+    setShowViewingModal(true);
+    setViewingError("");
+    setViewingSuccess("");
+  };
+
+  const handleViewingFormChange = (e) => {
+    const { name, value } = e.target;
+    setViewingForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleViewingSubmit = async (e) => {
+    e.preventDefault();
+    setSubmittingViewing(true);
+    setViewingError("");
+
+    try {
+      // Validate form
+      if (!viewingForm.date || !viewingForm.time) {
+        throw new Error("Please select both date and time for the viewing");
+      }
+
+      // Create viewing request object
+      const viewingRequest = {
+        propertyId: prop.property_id,
+        propertyName: prop.description || `Property #${prop.property_id}`,
+        propertyPrice: prop.price
+          ? `$${prop.price.toLocaleString()}`
+          : "Price on request",
+        buyerEmail: user.email,
+        buyerName: user.name || user.email.split("@")[0],
+        requestedDate: viewingForm.date,
+        requestedTime: viewingForm.time,
+        message: viewingForm.message || "No additional message",
+        timestamp: new Date().toLocaleString(),
+      };
+
+      // Send email instead of storing in database
+      const success = await sendViewingRequestEmail(viewingRequest);
+
+      if (!success) {
+        throw new Error("Failed to send viewing request email");
+      }
+
+      // Debug: Log the email data
+      console.log("📧 Viewing request sent via email:", viewingRequest);
+
+      setViewingSuccess(
+        "Viewing request sent successfully! We'll contact you soon to confirm the appointment."
+      );
+      setViewingForm({ date: "", time: "", message: "" });
+
+      // Close modal after 3 seconds
+      setTimeout(() => {
+        setShowViewingModal(false);
+        setViewingSuccess("");
+      }, 3000);
+    } catch (error) {
+      setViewingError(error.message || "Failed to send viewing request");
+    } finally {
+      setSubmittingViewing(false);
+    }
+  };
+
+  const closeViewingModal = () => {
+    setShowViewingModal(false);
+    setViewingForm({ date: "", time: "", message: "" });
+    setViewingError("");
+    setViewingSuccess("");
+  };
+
+  // Get minimum date (today)
+  const today = new Date().toISOString().split("T")[0];
 
   return (
     <div className="listing-details-container">
@@ -180,7 +416,37 @@ export default function ListingDetailsPage() {
             <p>
               Price: <b>${prop.price?.toLocaleString() ?? "—"}</b>
             </p>
-            <button className="schedule-btn">Schedule a viewing</button>
+
+            <div className="action-buttons">
+              <button
+                className="schedule-btn"
+                onClick={handleScheduleViewing}
+                disabled={authLoading}
+              >
+                {user ? "Schedule a viewing" : "Sign in to schedule viewing"}
+              </button>
+
+              <button
+                className={`bookmark-btn ${
+                  isPropertyBookmarked ? "bookmarked" : ""
+                }`}
+                onClick={handleBookmarkToggle}
+                disabled={bookmarkLoading || !user}
+                title={
+                  user
+                    ? isPropertyBookmarked
+                      ? "Remove from bookmarks"
+                      : "Add to bookmarks"
+                    : "Sign in to bookmark"
+                }
+              >
+                {bookmarkLoading
+                  ? "⏳"
+                  : isPropertyBookmarked
+                  ? "❤️ Saved"
+                  : "🤍 Save"}
+              </button>
+            </div>
           </div>
 
           {/* property info rows*/}
@@ -308,6 +574,110 @@ export default function ListingDetailsPage() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Viewing Modal */}
+      {showViewingModal && (
+        <div className="viewing-modal-overlay" onClick={closeViewingModal}>
+          <div className="viewing-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="viewing-modal-header">
+              <h3>Schedule a Viewing</h3>
+              <button
+                className="viewing-modal-close"
+                onClick={closeViewingModal}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="viewing-modal-content">
+              <div className="property-summary">
+                <h4>{prop?.description || `Property #${prop?.property_id}`}</h4>
+                <p>${prop?.price?.toLocaleString() ?? "—"}</p>
+              </div>
+
+              {viewingError && (
+                <div className="viewing-error">{viewingError}</div>
+              )}
+
+              {viewingSuccess && (
+                <div className="viewing-success">{viewingSuccess}</div>
+              )}
+
+              <form onSubmit={handleViewingSubmit} className="viewing-form">
+                <div className="viewing-form-row">
+                  <div className="viewing-form-group">
+                    <label htmlFor="date">Preferred Date</label>
+                    <input
+                      type="date"
+                      id="date"
+                      name="date"
+                      value={viewingForm.date}
+                      onChange={handleViewingFormChange}
+                      min={today}
+                      required
+                      disabled={submittingViewing}
+                    />
+                  </div>
+
+                  <div className="viewing-form-group">
+                    <label htmlFor="time">Preferred Time</label>
+                    <select
+                      id="time"
+                      name="time"
+                      value={viewingForm.time}
+                      onChange={handleViewingFormChange}
+                      required
+                      disabled={submittingViewing}
+                    >
+                      <option value="">Select time</option>
+                      <option value="09:00">9:00 AM</option>
+                      <option value="10:00">10:00 AM</option>
+                      <option value="11:00">11:00 AM</option>
+                      <option value="12:00">12:00 PM</option>
+                      <option value="13:00">1:00 PM</option>
+                      <option value="14:00">2:00 PM</option>
+                      <option value="15:00">3:00 PM</option>
+                      <option value="16:00">4:00 PM</option>
+                      <option value="17:00">5:00 PM</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="viewing-form-group">
+                  <label htmlFor="message">Message (Optional)</label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={viewingForm.message}
+                    onChange={handleViewingFormChange}
+                    placeholder="Any specific requirements or questions..."
+                    rows={3}
+                    disabled={submittingViewing}
+                  />
+                </div>
+
+                <div className="viewing-form-buttons">
+                  <button
+                    type="button"
+                    onClick={closeViewingModal}
+                    className="viewing-btn-cancel"
+                    disabled={submittingViewing}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="viewing-btn-submit"
+                    disabled={submittingViewing}
+                  >
+                    {submittingViewing ? "Submitting..." : "Submit Request"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -13,6 +13,7 @@ export default function Authenticate() {
   const [tab, setTab] = useState("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [username, setUsername] = useState("");
   const [adminId, setAdminId] = useState("");
   const [error, setError] = useState("");
@@ -25,11 +26,12 @@ export default function Authenticate() {
     if (user) {
       router.push("/");
     }
-  }, [email, password, user]);
+  }, [email, password, user, router]);
 
   const resetForm = () => {
     setEmail("");
     setPassword("");
+    setConfirmPassword("");
     setUsername("");
     setAdminId("");
     setError("");
@@ -40,7 +42,7 @@ export default function Authenticate() {
     setIsProcessing(true);
     setError("");
 
-    if (!username || !email || !password) {
+    if (!username || !email || !password || !confirmPassword) {
       setError("Please fill in all fields");
       setIsProcessing(false);
       return;
@@ -52,13 +54,22 @@ export default function Authenticate() {
       return;
     }
 
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      setIsProcessing(false);
+      return;
+    }
+
     const { error } = await signup(email, password, username);
     if (error) {
       setError(error.message);
     } else {
-      setSuccess("Account created successfully.");
+      setSuccess("Account created successfully! Redirecting to homepage...");
       resetForm();
-      setTab("login");
+      // Redirect to homepage after successful signup
+      setTimeout(() => {
+        router.push("/");
+      }, 1500);
     }
     setIsProcessing(false);
   };
@@ -214,6 +225,15 @@ export default function Authenticate() {
                 className="input-field"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+              <input
+                type="password"
+                placeholder="Confirm Password"
+                className="input-field"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={6}
               />

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect, use } from "react";
 import {
   HomeIcon,
@@ -45,9 +46,12 @@ ChartJS.register(
 );
 
 const statusColors = {
-  pending: "#003d74",
-  accepted: "#0c7400",
-  rejected: "#740000",
+  unemployed: "#003d74", // Pending - blue
+  employed: "#0c7400", // Approved - green
+  rejected: "#740000", // Rejected - red
+  pending: "#003d74", // Keep for backwards compatibility
+  approved: "#0c7400", // Keep for backwards compatibility
+  disapproved: "#740000", // Keep for backwards compatibility
 };
 
 const clientsData = [
@@ -109,6 +113,116 @@ export default function AdminDashboard() {
   const [applicationsData, setApplicationsData] = useState([]);
   const [contractorSkills, setcontractorSkills] = useState([]);
   const [showSkillsModal, setShowSkillsModal] = useState(false);
+
+  // Helper function to convert status text to database codes
+  function getStatusCode(statusText) {
+    // Safety check: ensure statusText is a string
+    if (!statusText || typeof statusText !== "string") {
+      return 1; // default to 1 (active) if statusText is invalid
+    }
+
+    const statusMap = {
+      active: 1,
+      sold: 2,
+      pending: 3,
+      inactive: 4,
+      available: 1, // alias for active
+      unavailable: 4, // alias for inactive
+    };
+
+    const normalizedStatus = statusText.toLowerCase().trim();
+    return statusMap[normalizedStatus] || 1; // default to 1 (active) if unknown
+  }
+
+  // Helper function to convert status codes back to text for display
+  function getStatusText(statusCode) {
+    const codeMap = {
+      1: "Active",
+      2: "Sold",
+      3: "Pending",
+      4: "Inactive",
+    };
+
+    return codeMap[statusCode] || "Active";
+  }
+
+  // Helper function to validate basement type
+  function getValidBasementType(basementType) {
+    // Safety check: ensure basementType is a string
+    if (!basementType || typeof basementType !== "string") {
+      return "c"; // Default for invalid input
+    }
+
+    // The database constraint allows: 'c', 'w', 'f', 'p'
+    // These likely mean: c=crawl/concrete, w=walkout, f=full, p=partial
+    const validValues = ["c", "w", "f", "p"];
+
+    const normalizedType = basementType.trim().toLowerCase();
+
+    if (!normalizedType) {
+      return "c"; // Default for empty
+    }
+
+    // Check exact match first
+    if (validValues.includes(normalizedType)) {
+      return normalizedType;
+    }
+
+    // Try to map common inputs to valid codes
+    const input = normalizedType;
+    if (input.includes("full") || input.includes("finished")) return "f";
+    if (input.includes("partial")) return "p";
+    if (input.includes("walkout")) return "w";
+    if (
+      input.includes("crawl") ||
+      input.includes("concrete") ||
+      input.includes("none") ||
+      input.includes("no")
+    )
+      return "c";
+
+    // Single character inputs
+    if (input === "f" || input === "full") return "f";
+    if (input === "p" || input === "partial") return "p";
+    if (input === "w" || input === "walkout") return "w";
+    if (input === "c" || input === "crawl" || input === "none") return "c";
+
+    // Last resort - return safe default
+    return "c";
+  }
+
+  // Helper function to validate property kind (must be exactly 1 character)
+  function getValidPropertyKind(propertyKind) {
+    // Safety check: ensure propertyKind is a string
+    if (!propertyKind || typeof propertyKind !== "string") {
+      return "H"; // Default for invalid input (House)
+    }
+
+    const normalizedType = propertyKind.trim();
+
+    if (!normalizedType) {
+      return "H"; // Default for empty (House)
+    }
+
+    // If it's already 1 character, return it uppercase
+    if (normalizedType.length === 1) {
+      return normalizedType.toUpperCase();
+    }
+
+    // If longer, try to map common property types to single letters
+    const input = normalizedType.toLowerCase();
+    if (input.includes("house") || input.includes("home")) return "H";
+    if (input.includes("condo") || input.includes("condominium")) return "C";
+    if (input.includes("town") || input.includes("townhouse")) return "T";
+    if (input.includes("apartment") || input.includes("apt")) return "A";
+    if (input.includes("land") || input.includes("lot")) return "L";
+    if (input.includes("duplex")) return "D";
+    if (input.includes("villa")) return "V";
+    if (input.includes("mobile") || input.includes("manufactured")) return "M";
+
+    // Default: take first character and capitalize
+    return normalizedType.charAt(0).toUpperCase();
+  }
 
   // variable to watch for
   const [currentRole, setCurrentRole] = useState(null);
@@ -215,8 +329,9 @@ export default function AdminDashboard() {
 
   // applications filter
   const filteredApps = applicationsData.filter((app) => {
-    if (filter !== "all" && app.status !== filter) return false;
-    if (search && !app.name.toLowerCase().includes(search.toLowerCase()))
+    if (filter !== "all" && app.employment_status?.toLowerCase() !== filter)
+      return false;
+    if (search && !app.name?.toLowerCase().includes(search.toLowerCase()))
       return false;
     return true;
   });
@@ -247,11 +362,20 @@ export default function AdminDashboard() {
   async function handlePropertySubmit(e) {
     e.preventDefault();
     console.log("Submitting property form with data:", propertyForm);
+    console.log("editingId:", editingId);
+    console.log("editIdx:", editIdx);
+
     const body = {
       ...propertyForm,
+      // Handle UUID fields - convert empty strings to null
+      buyer_id:
+        propertyForm.buyer_id && propertyForm.buyer_id.trim() !== ""
+          ? propertyForm.buyer_id
+          : null,
       // cast numeric fields
       rooms: propertyForm.rooms !== "" ? parseInt(propertyForm.rooms) : null,
-      status: propertyForm.status !== "" ? parseInt(propertyForm.status) : null,
+      status:
+        propertyForm.status !== "" ? getStatusCode(propertyForm.status) : 1, // Convert text to status code
       washroom:
         propertyForm.washroom !== "" ? parseInt(propertyForm.washroom) : null,
       garage: propertyForm.garage !== "" ? parseInt(propertyForm.garage) : null,
@@ -264,22 +388,47 @@ export default function AdminDashboard() {
       sq_feet:
         propertyForm.sq_feet !== "" ? parseInt(propertyForm.sq_feet) : null,
       lot_size:
-        propertyForm.lot_size !== "" ? parseInt(propertyForm.lot_size) : null,
+        propertyForm.lot_size !== "" ? parseInt(propertyForm.lot_size) : 0, // Default to 0 if empty
       price: propertyForm.price !== "" ? parseInt(propertyForm.price) : null,
+      // Handle text fields - convert empty strings to valid defaults where appropriate
+      basement_type:
+        propertyForm.basement_type && propertyForm.basement_type.trim() !== ""
+          ? getValidBasementType(propertyForm.basement_type)
+          : "c", // Use valid constraint value: c, w, f, or p
+      property_kind:
+        propertyForm.property_kind && propertyForm.property_kind.trim() !== ""
+          ? getValidPropertyKind(propertyForm.property_kind)
+          : getValidPropertyKind(""), // Use helper function to ensure valid 1-character value
+      description:
+        propertyForm.description && propertyForm.description.trim() !== ""
+          ? propertyForm.description
+          : null,
     };
+
+    console.log("Processed body for submission:", body);
 
     try {
       if (editingId) {
         console.log("Updating property with ID:", editingId);
-        await updateProperty(editingId, body);
+        const result = await updateProperty(editingId, body);
+        console.log("Update result:", result);
       } else {
-        await insertProperty(body);
+        console.log("Creating new property");
+        const result = await insertProperty(body);
+        console.log("Insert result:", result);
       }
+
+      console.log("Refreshing properties list...");
       const rows = await getProperties();
       setProperties(rows);
       setUploadedFiles([]);
+
+      console.log("Property operation completed successfully");
     } catch (err) {
       console.error("Save failed:", err.message);
+      console.error("Full error:", err);
+      alert(`Save failed: ${err.message}`);
+      return; // Don't reset form if there was an error
     }
 
     // reset
@@ -322,6 +471,14 @@ export default function AdminDashboard() {
 
   function handleEdit(idx) {
     const row = properties[idx];
+    console.log("Editing property:", row);
+    console.log(
+      "Property ID:",
+      row.property_id,
+      "Type:",
+      typeof row.property_id
+    );
+
     setPropertyForm({
       rooms: row.rooms ?? "",
       status: row.status ?? "",
@@ -343,21 +500,53 @@ export default function AdminDashboard() {
     setEditingId(row.property_id);
     setShowPropertyForm(true);
     setUploadedFiles([]);
+
+    console.log(
+      "Edit state set - editingId:",
+      row.property_id,
+      "editIdx:",
+      idx
+    );
   }
 
   async function handleDelete(idx) {
     const row = properties[idx];
-    if (!row?.property_id) return;
+    console.log("Delete request - idx:", idx, "row:", row);
+    console.log("Properties array:", properties);
+
+    if (!row?.property_id) {
+      alert("Error: Property ID not found");
+      return;
+    }
+
+    // Confirm deletion
+    const confirmDelete = confirm(
+      `Are you sure you want to delete this property?\n\nID: ${row.property_id}\n\nThis will also remove:\n- Any bookmarks for this property\n- Any viewing requests for this property\n\nThis action cannot be undone.`
+    );
+    if (!confirmDelete) return;
+
     try {
+      console.log(
+        "Deleting property with ID:",
+        row.property_id,
+        "Type:",
+        typeof row.property_id
+      );
       await deleteProperty(row.property_id);
+
+      // Refresh the properties list
       const rows = await getProperties();
       setProperties(rows);
+
+      console.log("Property deleted successfully");
+      alert("Property deleted successfully!");
     } catch (e) {
       console.error("Delete failed:", e.message);
+      alert(`Delete failed: ${e.message}`);
     }
   }
 
-  async function UpdateContractorEnploymentStatus(employeeId, newStatus) {
+  async function UpdateContractorEmploymentStatus(employeeId, newStatus) {
     try {
       const { data, error } = await supabase
         .from("Contractor")
@@ -366,85 +555,62 @@ export default function AdminDashboard() {
 
       if (error) {
         console.error("Error updating application status:", error);
+        return false;
       } else {
         console.log("Update successful. Data:", data);
-      }
 
-      const { data: refetchedData, error: refetchError } = await supabase
-        .from("Contractor")
-        .select("*");
-      if (refetchError) {
-        console.error("Error refetching contractors:", refetchError);
-      } else {
-        setApplicationsData(refetchedData);
+        // Force a complete refresh of the contractors data
+        const { data: refetchedData, error: refetchError } = await supabase
+          .from("Contractor")
+          .select("*");
+        if (refetchError) {
+          console.error("Error refetching contractors:", refetchError);
+          return false;
+        } else {
+          setApplicationsData(refetchedData);
+          return true;
+        }
       }
     } catch (err) {
       console.error("Unexpected error:", err);
+      return false;
     }
   }
 
-  async function handleStatusChange(employeeId, currentElement) {
-    // remove any open dropdown
-    const existing = document.querySelector(".status-dropdown");
-    if (existing) existing.remove();
+  async function fetchContractorSkills(employeeId) {
+    try {
+      const { data, error } = await supabase
+        .from("Contractor")
+        .select("skills")
+        .eq("employee_id", employeeId)
+        .single();
 
-    const dd = document.createElement("select");
-    dd.className = "status-dropdown";
-
-    ["Application Status", "Hired", "Fired", "Pending"].forEach((txt, i) => {
-      const opt = document.createElement("option");
-      opt.value = i === 0 ? "" : txt;
-      opt.textContent = txt;
-      opt.disabled = i === 0;
-      opt.selected = i === 0;
-      dd.appendChild(opt);
-    });
-
-    // position directly under the clicked element
-    const r = currentElement.getBoundingClientRect();
-    const gap = 4; // small space under the button
-
-    dd.style.position = "fixed";
-    dd.style.top = `${r.bottom + gap}px`;
-    dd.style.left = `${r.left}px`;
-    dd.style.width = `${r.width}px`; // match trigger width
-    dd.style.maxWidth = "1000px"; // never overflow viewport
-    dd.style.zIndex = "1000";
-
-    // minimal styling (kept small)
-    dd.style.padding = "4px";
-    dd.style.border = "1px solid #444";
-    dd.style.borderRadius = "4px";
-    dd.style.backgroundColor = "#333";
-    dd.style.color = "#fff";
-    dd.style.fontSize = "12px";
-    dd.style.cursor = "pointer";
-
-    document.body.appendChild(dd);
-
-    // clamp horizontally if near the right edge
-    requestAnimationFrame(() => {
-      const dw = dd.offsetWidth;
-      if (r.left + dw > window.innerWidth - 8) {
-        dd.style.left = `${Math.max(8, window.innerWidth - dw - 8)}px`;
+      if (error) {
+        console.error("Error fetching contractor skills:", error);
+        setcontractorSkills("Error loading skills");
+      } else {
+        setcontractorSkills(data.skills || "No skills available");
       }
-    });
+      setShowSkillsModal(true);
+    } catch (err) {
+      console.error("Unexpected error fetching skills:", err);
+      setcontractorSkills("Error loading skills");
+      setShowSkillsModal(true);
+    }
+  }
 
-    dd.addEventListener("change", async () => {
-      const newStatus = dd.value;
-      if (!newStatus) return;
+  async function handleStatusChange(employeeId, newStatus) {
+    if (!newStatus) return;
 
-      await UpdateContractorEnploymentStatus(employeeId, newStatus);
-      currentElement.textContent = newStatus.toUpperCase();
-      currentElement.style.background =
-        newStatus === "Hired"
-          ? "#0c7400"
-          : newStatus === "Fired"
-          ? "#740000"
-          : "#003d74";
-
-      dd.remove();
-    });
+    const success = await UpdateContractorEmploymentStatus(
+      employeeId,
+      newStatus
+    );
+    if (success) {
+      console.log(
+        `Successfully updated contractor ${employeeId} to ${newStatus}`
+      );
+    }
   }
 
   // ----- UI -----
@@ -565,21 +731,21 @@ export default function AdminDashboard() {
                 </button>
                 <button
                   className={`status-tab ${
-                    filter === "accepted" ? "active" : ""
+                    filter === "approved" ? "active" : ""
                   }`}
-                  style={{ background: statusColors.accepted }}
-                  onClick={() => setFilter("accepted")}
+                  style={{ background: statusColors.approved }}
+                  onClick={() => setFilter("approved")}
                 >
-                  ACCEPTED
+                  APPROVED
                 </button>
                 <button
                   className={`status-tab ${
-                    filter === "rejected" ? "active" : ""
+                    filter === "disapproved" ? "active" : ""
                   }`}
-                  style={{ background: statusColors.rejected }}
-                  onClick={() => setFilter("rejected")}
+                  style={{ background: statusColors.disapproved }}
+                  onClick={() => setFilter("disapproved")}
                 >
-                  REJECTED
+                  DISAPPROVED
                 </button>
               </div>
               <button
@@ -598,56 +764,87 @@ export default function AdminDashboard() {
                 />
               </div>
             </div>
-            <div className="contractor-list">
-              {filteredApps.map((app, idx) => (
-                <div className="application-card" key={idx}>
-                  <div className="application-info">
-                    <div className="contractor-name">
-                      {app?.name || "Unknown"}
+            <div className="applications-content">
+              <div className="contractor-list">
+                {filteredApps.map((app, idx) => (
+                  <div className="application-card" key={idx}>
+                    <div className="application-info">
+                      <div className="contractor-name">
+                        {app?.name || "Unknown"}
+                      </div>
+                      <div className="contractor-contact">
+                        {app?.email || "N/A"} &nbsp;|&nbsp;{" "}
+                        {app?.phone_number || "N/A"}
+                      </div>
                     </div>
-                    <div className="contractor-contact">
-                      {app?.email || "N/A"} &nbsp;|&nbsp;{" "}
-                      {app?.phone_number || "N/A"}
+                    {/* Contractor Actions */}
+                    <div className="contractor-actions">
+                      <select
+                        className="contractor-status"
+                        style={{
+                          background:
+                            statusColors[
+                              app?.employment_status?.toLowerCase()
+                            ] || "#000",
+                          color: "#fff",
+                          padding: "6px 12px",
+                          borderRadius: "4px",
+                          fontSize: "14px",
+                          fontWeight: "bold",
+                          cursor: "pointer",
+                          border: "none",
+                          outline: "none",
+                        }}
+                        value={app?.employment_status || "unemployed"}
+                        onChange={(e) =>
+                          handleStatusChange(app?.employee_id, e.target.value)
+                        }
+                      >
+                        <option value="unemployed">PENDING</option>
+                        <option value="employed">APPROVED</option>
+                        <option value="rejected">REJECTED</option>
+                      </select>
+                      <button
+                        className="contractor-more-btn"
+                        style={{
+                          marginLeft: "8px",
+                          padding: "6px 12px",
+                          backgroundColor: "#444",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "4px",
+                          fontSize: "14px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => fetchContractorSkills(app?.employee_id)}
+                      >
+                        MORE INFO
+                      </button>
                     </div>
                   </div>
-                  {/* Contractor Actions */}
-                  <div className="contractor-actions">
-                    <span
-                      className="contractor-status"
-                      style={{
-                        background: statusColors[app?.status] || "#000",
-                        color: "#fff",
-                        padding: "6px 12px",
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        fontWeight: "bold",
-                        cursor: "pointer",
-                      }}
-                      onClick={(event) =>
-                        handleStatusChange(app?.employee_id, event.target)
-                      }
-                    >
-                      {app?.employment_status?.toUpperCase() || "UNKNOWN"}
-                    </span>
+                ))}
+              </div>
+              {/* Skills Panel on the Right */}
+              {showSkillsModal && (
+                <div className="skills-right-panel">
+                  <div className="skills-panel-header">
+                    <h3>Applicant Skills</h3>
                     <button
-                      className="contractor-more-btn"
-                      style={{
-                        marginLeft: "8px",
-                        padding: "6px 12px",
-                        backgroundColor: "#444",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => fetchContractorSkills(app?.employee_id)}
+                      className="close-btn"
+                      onClick={() => setShowSkillsModal(false)}
                     >
-                      MORE INFO
+                      ×
                     </button>
                   </div>
+                  <div className="skills-panel-content">
+                    <p>
+                      {Array.isArray(contractorSkills)
+                        ? contractorSkills.join(", ")
+                        : contractorSkills || "No skills available."}
+                    </p>
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}
@@ -776,8 +973,6 @@ export default function AdminDashboard() {
                   "gym",
                   "office",
                   "recreational_room",
-                  "basement_type",
-                  "property_kind",
                   "description",
                   "sq_feet",
                   "lot_size",
@@ -796,17 +991,53 @@ export default function AdminDashboard() {
                   </label>
                 ))}
 
+                {/* Dropdown for Basement Type */}
+                <label>
+                  Basement Type:
+                  <select
+                    name="basement_type"
+                    value={propertyForm.basement_type}
+                    onChange={handlePropertyFieldChange}
+                  >
+                    <option value="">Select Basement Type</option>
+                    <option value="c">Concrete (c)</option>
+                    <option value="w">Wood (w)</option>
+                    <option value="f">Finished (f)</option>
+                    <option value="p">Partial (p)</option>
+                  </select>
+                </label>
+
+                {/* Dropdown for Property Kind */}
+                <label>
+                  Property Kind:
+                  <select
+                    name="property_kind"
+                    value={propertyForm.property_kind}
+                    onChange={handlePropertyFieldChange}
+                  >
+                    <option value="">Select Property Type</option>
+                    <option value="H">House (H)</option>
+                    <option value="C">Condo (C)</option>
+                    <option value="T">Townhouse (T)</option>
+                    <option value="A">Apartment (A)</option>
+                    <option value="L">Land/Lot (L)</option>
+                    <option value="D">Duplex (D)</option>
+                    <option value="V">Villa (V)</option>
+                    <option value="M">Mobile/Manufactured (M)</option>
+                  </select>
+                </label>
+
                 {/* Live preview of uploaded images */}
                 {propertyForm.image_urls.length > 0 && (
                   <div style={{ display: "flex", gap: 8, margin: "8px 0" }}>
                     {propertyForm.image_urls.map((url, i) => (
-                      <img
+                      <Image
                         key={i}
                         src={url}
                         alt="property"
+                        width={60}
+                        height={60}
                         style={{
-                          width: 60,
-                          height: 60,
                           objectFit: "cover",
                           borderRadius: 8,
                         }}
@@ -842,13 +1073,13 @@ export default function AdminDashboard() {
                             {Array.isArray(value) && key === "image_urls" ? (
                               <span style={{ display: "inline-flex", gap: 6 }}>
                                 {value.map((url, i) => (
-                                  <img
+                                  <Image
                                     key={i}
                                     src={url}
                                     alt="property"
+                                    width={60}
+                                    height={60}
                                     style={{
-                                      width: 60,
-                                      height: 60,
                                       objectFit: "cover",
                                       borderRadius: 8,
                                     }}
@@ -887,74 +1118,91 @@ export default function AdminDashboard() {
                 <h1 className="job-portal-title">Job Portal</h1>
               </div>
             </div>
-            <div className="contractor-list">
-              {applicationsData.map((app, idx) => (
-                <div className="application-card" key={idx}>
-                  <div className="application-info">
-                    <div className="contractor-name">
-                      {app?.name || "Unknown"}
+            <div className="job-portal-content">
+              <div className="contractor-list">
+                {applicationsData.map((app, idx) => (
+                  <div className="application-card" key={idx}>
+                    <div className="application-info">
+                      <div className="contractor-name">
+                        {app?.name || "Unknown"}
+                      </div>
+                      <div className="contractor-date">
+                        {app?.date || "N/A"}
+                      </div>
+                      <div className="contractor-contact">
+                        {app?.email || "N/A"} &nbsp;|&nbsp;{" "}
+                        {app?.phone_number || "N/A"}
+                      </div>
                     </div>
-                    <div className="contractor-date">{app?.date || "N/A"}</div>
-                    <div className="contractor-contact">
-                      {app?.email || "N/A"} &nbsp;|&nbsp;{" "}
-                      {app?.phone_number || "N/A"}
+                    {/* Contractor Actions */}
+                    <div className="contractor-actions">
+                      <select
+                        className="contractor-status"
+                        style={{
+                          background:
+                            statusColors[
+                              app?.employment_status?.toLowerCase()
+                            ] || "#000",
+                          color: "#fff",
+                          padding: "6px 12px",
+                          borderRadius: "4px",
+                          fontSize: "14px",
+                          fontWeight: "bold",
+                          cursor: "pointer",
+                          border: "none",
+                          outline: "none",
+                        }}
+                        value={app?.employment_status || "unemployed"}
+                        onChange={(e) =>
+                          handleStatusChange(app?.employee_id, e.target.value)
+                        }
+                      >
+                        <option value="unemployed">PENDING</option>
+                        <option value="employed">APPROVED</option>
+                        <option value="rejected">REJECTED</option>
+                      </select>
+                      <button
+                        className="contractor-more-btn"
+                        style={{
+                          marginLeft: "8px",
+                          padding: "6px 12px",
+                          backgroundColor: "#444",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "4px",
+                          fontSize: "14px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => fetchContractorSkills(app?.employee_id)}
+                      >
+                        MORE INFO
+                      </button>
                     </div>
                   </div>
-                  {/* Contractor Actions */}
-                  <div className="contractor-actions">
-                    <span
-                      className="contractor-status"
-                      style={{
-                        background: statusColors[app?.status] || "#000",
-                        color: "#fff",
-                        padding: "6px 12px",
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        fontWeight: "bold",
-                        cursor: "pointer",
-                      }}
-                      onClick={(event) =>
-                        handleStatusChange(app?.employee_id, event.target)
-                      }
-                    >
-                      {app?.employment_status?.toUpperCase() || "UNKNOWN"}
-                    </span>
+                ))}
+              </div>
+              {/* Skills Panel on the Right */}
+              {showSkillsModal && (
+                <div className="skills-right-panel">
+                  <div className="skills-panel-header">
+                    <h3>Applicant Skills</h3>
                     <button
-                      className="contractor-more-btn"
-                      style={{
-                        marginLeft: "8px",
-                        padding: "6px 12px",
-                        backgroundColor: "#444",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => fetchContractorSkills(app?.employee_id)}
+                      className="close-btn"
+                      onClick={() => setShowSkillsModal(false)}
                     >
-                      MORE INFO
+                      ×
                     </button>
                   </div>
+                  <div className="skills-panel-content">
+                    <p>
+                      {Array.isArray(contractorSkills)
+                        ? contractorSkills.join(", ")
+                        : contractorSkills || "No skills available."}
+                    </p>
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
-            {/* Skills Popup */}
-            {showSkillsModal && (
-              <div className="skills-popup">
-                <div className="skills-popup-content">
-                  <h2>Applicant Skills</h2>
-                  <p>
-                    {Array.isArray(contractorSkills)
-                      ? contractorSkills.join(", ")
-                      : contractorSkills || "No skills available."}
-                  </p>
-                  <button onClick={() => setShowSkillsModal(false)}>
-                    Close
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>

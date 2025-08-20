@@ -149,6 +149,11 @@ export default function CareersPage() {
           <li className="navbar-li">
             <Link href="/careers">Career opportunity</Link>
           </li>
+          {user && (
+            <li className="navbar-li">
+              <Link href="/my-applications">My Applications</Link>
+            </li>
+          )}
         </ul>
       </nav>
       <h1 className="careers-title">Careers at RealtorWeb</h1>

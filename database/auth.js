@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { supabase } from "../database/supabase";
 
 const AuthContext = createContext(null);
@@ -9,6 +9,9 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null); // "admin" | "buyer" | null
   const [loading, setLoading] = useState(true);
+
+  // Cache the last resolved role for a specific user id
+  const cachedRoleRef = useRef({ userId: null, role: null });
 
   async function signup(email, password, username) {
     const { data, error } = await supabase.auth.signUp({ email, password });
@@ -32,27 +35,21 @@ export function AuthProvider({ children }) {
   }
 
   async function signOut() {
-    console.log("[AuthProvider] Signing out user:", user?.id);
     await supabase.auth.signOut();
     setSession(null);
     setUser(null);
     setRole(null);
+    cachedRoleRef.current = { userId: null, role: null };
   }
 
   async function fetchRole(uid) {
     if (!uid) return null;
-
     try {
-      console.log(
-        "[AuthProvider] Attempting to fetch role for admin user:",
-        uid
-      );
       const { data: a, error: e } = await supabase
         .from("Admin")
         .select("admin_id")
         .eq("admin_id", uid)
         .maybeSingle();
-      console.log("[AuthProvider] Admin fetch result:", { a, e });
       if (!e && a) return "admin";
 
       const { data: b, error: er } = await supabase
@@ -60,12 +57,11 @@ export function AuthProvider({ children }) {
         .select("buyer_id")
         .eq("buyer_id", uid)
         .maybeSingle();
-      console.log("[AuthProvider] Buyer fetch result:", { b, er });
       if (!er && b) return "buyer";
     } catch (error) {
       console.error("[AuthProvider] fetchRole error:", error);
-      return null;
     }
+    return null;
   }
 
   useEffect(() => {
@@ -75,21 +71,43 @@ export function AuthProvider({ children }) {
       async (event, sess) => {
         if (!alive) return;
 
-        console.log("[AuthProvider] Auth state change:", { event, sess });
-
         setSession(sess ?? null);
         setUser(sess?.user ?? null);
+
+        const uid = sess?.user?.id ?? null;
 
         if (
           event === "INITIAL_SESSION" ||
           event === "SIGNED_IN" ||
           event === "USER_UPDATED"
         ) {
+          // If same user as last time and we already have their role, reuse it.
+          if (
+            uid &&
+            cachedRoleRef.current.userId === uid &&
+            cachedRoleRef.current.role != null
+          ) {
+            console.log("[AuthProvider] Using cached role for user:", uid);
+            console.log(
+              "[AuthProvider] Cached role:",
+              cachedRoleRef.current.role
+            );
+            setRole(cachedRoleRef.current.role);
+            setLoading(false);
+            return;
+          }
+
+          // Otherwise fetch once and cache
           try {
-            const roleResult = await fetchRole(sess?.user?.id ?? null);
-            if (alive) setRole(roleResult);
+            const roleResult = await fetchRole(uid);
+            if (!alive) return;
+            setRole(roleResult);
+            cachedRoleRef.current = { userId: uid, role: roleResult };
           } catch (e) {
             console.error("[AuthProvider] role fetch failed:", e);
+            if (!alive) return;
+            setRole(null);
+            cachedRoleRef.current = { userId: uid, role: null };
           } finally {
             setLoading(false);
           }
@@ -97,6 +115,7 @@ export function AuthProvider({ children }) {
 
         if (event === "SIGNED_OUT") {
           setRole(null);
+          cachedRoleRef.current = { userId: null, role: null };
           setLoading(false);
         }
       }

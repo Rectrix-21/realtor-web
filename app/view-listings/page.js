@@ -58,6 +58,7 @@ export default function Listings() {
       setLoading(true);
       setErr("");
       try {
+        console.log("Fetching properties...");
         const data = await getProperties();
         const rows = Array.isArray(data)
           ? data.filter((p) => p.buyer_id == null)

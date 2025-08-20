@@ -16,7 +16,7 @@ export default function Home() {
 
   const { role, user, loading } = useAuth();
 
-  if (user && loading) {
+  if (loading) {
     return <div>Loading...</div>;
   }
 

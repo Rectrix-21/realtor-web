@@ -2,8 +2,8 @@ import "./globals.css";
 import { AuthProvider } from "../database/auth";
 
 export const metadata = {
-  title: "Brick Development",
-  description: "Realtor website for Brick Development",
+  title: "Havenly",
+  description: "Realtor website for Havenly",
 };
 
 export default function RootLayout({ children }) {

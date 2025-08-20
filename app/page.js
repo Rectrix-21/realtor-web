@@ -2,7 +2,7 @@
 
 /* run npm install @heroicons/react */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
@@ -15,6 +15,19 @@ export default function Home() {
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
 
   const { role, signOut, user, loading } = useAuth();
+
+  useEffect(() => {
+    // Check if the user is an admin
+    if (role === "admin") {
+      setAdminLoggedIn(true);
+    } else {
+      setAdminLoggedIn(false);
+    }
+  }, [role]);
+
+  if (user && loading) {
+    return <div>Loading...</div>;
+  }
 
   const handleDropdownItemClick = (e, item) => {
     e.stopPropagation();
@@ -82,7 +95,7 @@ export default function Home() {
             <Link href="/careers">Career opportunity</Link>
           </li>
           <li>
-            {role === "admin" ? (
+            {adminLoggedIn ? (
               <div className="navbar-li">
                 <Link href="/admin-dashboard">Admin Dashboard</Link>
               </div>

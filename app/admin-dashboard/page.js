@@ -166,17 +166,18 @@ export default function AdminDashboard() {
     console.log("Property form data:", propertyForm);
   }, [uploadedFiles, propertyForm]);
 
-  if (loading) {
+  useEffect(() => {
+    if (!loading && role !== "admin") {
+      router.push("/"); // redirect if not admin
+    }
+  }, [loading, role, router]);
+
+  if (loading || role !== "admin") {
     return (
-      <div className="loading-screen">
-        <p>Loading...</p>
+      <div>
+        <h1>Loading...</h1>
       </div>
     );
-  }
-
-  if (role !== "admin") {
-    router.push("/"); // redirect if not admin
-    return null; // prevent rendering anything else
   }
 
   const chartData = {

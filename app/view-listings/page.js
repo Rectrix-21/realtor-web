@@ -50,13 +50,19 @@ export default function Listings() {
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const sortDropdownRef = useRef(null);
 
+  // Track Availability of properties
+  const [availableProperties, setAvailableProperties] = useState([]);
+
   useEffect(() => {
     (async () => {
       setLoading(true);
       setErr("");
       try {
         const data = await getProperties();
-        setProperties(Array.isArray(data) ? data : []);
+        const rows = Array.isArray(data)
+          ? data.filter((p) => String(p.status) === "1")
+          : [];
+        setProperties(rows);
       } catch (error) {
         setErr(error?.message || "Failed to fetch properties");
         setProperties([]);
@@ -333,8 +339,24 @@ export default function Listings() {
         </div>
       )}
 
+      {/* No properties message */}
+      {!loading && !err && sortedProperties.length === 0 && (
+        <div
+          style={{
+            padding: 16,
+            textAlign: "center",
+            fontSize: "1.2rem",
+            fontWeight: "500",
+          }}
+        >
+          No properties available.
+        </div>
+      )}
+
+      {console.log("Properties:", properties)}
+
       {/* Listings Grid */}
-      {!loading && !err && (
+      {!loading && !err && properties && (
         <div className="listings-grid">
           {pageSlice.map((p) => {
             const img =

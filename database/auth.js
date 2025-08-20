@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase, isSupabaseConfigured } from "../database/supabase";
+import { supabase } from "../database/supabase";
 
 const AuthContext = createContext(null);
 
@@ -38,7 +38,6 @@ export function AuthProvider({ children }) {
     setRole(null);
   }
 
-  // No timeout — just fetch the role
   async function fetchRole(uid) {
     if (!uid) return null;
 
@@ -47,7 +46,6 @@ export function AuthProvider({ children }) {
         "[AuthProvider] Attempting to fetch role for admin user:",
         uid
       );
-      console.log("[AuthProvider] Supabase configured:", isSupabaseConfigured);
       const { data: a, error: e } = await supabase
         .from("Admin")
         .select("admin_id")
@@ -76,6 +74,8 @@ export function AuthProvider({ children }) {
       async (event, sess) => {
         if (!alive) return;
 
+        console.log("[AuthProvider] Auth state change:", { event, sess });
+
         setSession(sess ?? null);
         setUser(sess?.user ?? null);
 
@@ -86,10 +86,9 @@ export function AuthProvider({ children }) {
         ) {
           try {
             const roleResult = await fetchRole(sess?.user?.id ?? null);
-            if (alive) setRole(roleResult ?? null);
+            if (alive) setRole(roleResult);
           } catch (e) {
             console.error("[AuthProvider] role fetch failed:", e);
-            if (alive) setRole(null);
           } finally {
             setLoading(false);
           }

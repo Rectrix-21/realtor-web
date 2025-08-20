@@ -281,7 +281,7 @@ export default function AdminDashboard() {
   }, [uploadedFiles, propertyForm]);
 
   useEffect(() => {
-    if (!loading && role !== "admin") {
+    if (role !== "admin") {
       router.push("/"); // redirect if not admin
     }
   }, [loading, role, router]);

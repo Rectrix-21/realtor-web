@@ -119,7 +119,7 @@ export default function MyApplicationsPage() {
         {applications.length === 0 && !loading && !error && (
           <div className="no-applications">
             <h3>No Applications Found</h3>
-            <p>You haven't submitted any job applications yet.</p>
+            <p>You haven&apos;t submitted any job applications yet.</p>
             <Link href="/careers" className="apply-now-btn">
               Browse Career Opportunities
             </Link>
@@ -192,7 +192,7 @@ export default function MyApplicationsPage() {
                   <div className="application-footer">
                     {statusInfo.text === "Pending Review" && (
                       <p className="status-message">
-                        Your application is being reviewed. We'll contact you
+                        Your application is being reviewed. We&apos;ll contact you
                         soon!
                       </p>
                     )}
@@ -204,7 +204,7 @@ export default function MyApplicationsPage() {
                     )}
                     {statusInfo.text === "Not Selected" && (
                       <p className="status-message">
-                        Thank you for your interest. We'll keep your application
+                        Thank you for your interest. We&apos;ll keep your application
                         on file for future opportunities.
                       </p>
                     )}

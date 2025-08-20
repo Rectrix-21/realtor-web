@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect, use } from "react";
 import {
   HomeIcon,
@@ -1029,13 +1030,13 @@ export default function AdminDashboard() {
                 {propertyForm.image_urls.length > 0 && (
                   <div style={{ display: "flex", gap: 8, margin: "8px 0" }}>
                     {propertyForm.image_urls.map((url, i) => (
-                      <img
+                      <Image
                         key={i}
                         src={url}
                         alt="property"
+                        width={60}
+                        height={60}
                         style={{
-                          width: 60,
-                          height: 60,
                           objectFit: "cover",
                           borderRadius: 8,
                         }}
@@ -1071,13 +1072,13 @@ export default function AdminDashboard() {
                             {Array.isArray(value) && key === "image_urls" ? (
                               <span style={{ display: "inline-flex", gap: 6 }}>
                                 {value.map((url, i) => (
-                                  <img
+                                  <Image
                                     key={i}
                                     src={url}
                                     alt="property"
+                                    width={60}
+                                    height={60}
                                     style={{
-                                      width: 60,
-                                      height: 60,
                                       objectFit: "cover",
                                       borderRadius: 8,
                                     }}

@@ -26,7 +26,7 @@ export default function Authenticate() {
     if (user) {
       router.push("/");
     }
-  }, [email, password, user]);
+  }, [email, password, user, router]);
 
   const resetForm = () => {
     setEmail("");

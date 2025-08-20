@@ -133,6 +133,12 @@ export default function AdminDashboard() {
     price: "",
   });
 
+  const [availableProperties, setAvailableProperties] = useState([]);
+  const [selectedPropertyId, setSelectedPropertyId] = useState("");
+  const [buyerEmail, setBuyerEmail] = useState("");
+  const [addClientError, setAddClientError] = useState("");
+  const [clients, setClients] = useState([]);
+
   console.log("User role:", role);
 
   useEffect(() => {
@@ -165,6 +171,46 @@ export default function AdminDashboard() {
     console.log("Uploaded files:", uploadedFiles);
     console.log("Property form data:", propertyForm);
   }, [uploadedFiles, propertyForm]);
+
+ 
+  useEffect(() => {
+    async function fetchAvailableProperties() {
+      const { data, error } = await supabase
+        .from("Property")
+        .select("property_id, description")
+        .is("buyer_id", null);
+      if (!error) setAvailableProperties(data || []);
+    }
+    fetchAvailableProperties();
+  }, []);
+
+  
+  useEffect(() => {
+    async function fetchClients() {
+      const { data: properties } = await supabase
+        .from("Property")
+        .select("property_id, description, buyer_id")
+        .not("buyer_id", "is", null);
+      if (!properties) return;
+
+      const clientList = await Promise.all(
+        properties.map(async (prop) => {
+          const { data: buyer } = await supabase
+            .from("Buyer")
+            .select("name, email")
+            .eq("buyer_id", prop.buyer_id)
+            .single();
+          return {
+            name: buyer?.name,
+            email: buyer?.email,
+            description: prop.description,
+          };
+        })
+      );
+      setClients(clientList);
+    }
+    fetchClients();
+  }, []);
 
   if (loading) {
     return (
@@ -446,6 +492,61 @@ export default function AdminDashboard() {
     });
   }
 
+  
+  async function handleAddClient(e) {
+    e.preventDefault();
+    setAddClientError("");
+  
+    const simpleEmail = buyerEmail.trim().toLowerCase();
+    console.log("Searching for buyer email:", simpleEmail); // DEBUG LOG
+
+    const { data: buyerData, error: buyerError } = await supabase
+      .from("Buyer")
+      .select("*")
+      .eq("email", simpleEmail)
+      .single();
+
+    console.log("Buyer query result:", buyerData, buyerError); // DEBUG LOG
+
+    if (buyerError || !buyerData) {
+      setAddClientError("No buyer found with that email.");
+      return;
+    }
+    // update the property table with buyer id
+    const { error: updateError } = await supabase
+      .from("Property")
+      .update({ buyer_id: buyerData.buyer_id })
+      .eq("property_id", selectedPropertyId);
+    if (updateError) {
+      setAddClientError("Failed to assign property.");
+      return;
+    }
+    setSelectedPropertyId("");
+    setBuyerEmail("");
+   
+    // display all lient that have bought a property with info and property description
+    const { data: properties } = await supabase
+      .from("Property")
+      .select("property_id, description, buyer_id")
+      .not("buyer_id", "is", null);
+    if (!properties) return;
+    const clientList = await Promise.all(
+      properties.map(async (prop) => {
+        const { data: buyer } = await supabase
+          .from("Buyer")
+          .select("name, email")
+          .eq("buyer_id", prop.buyer_id)
+          .single();
+        return {
+          name: buyer?.name,
+          email: buyer?.email,
+          description: prop.description,
+        };
+      })
+    );
+    setClients(clientList);
+  }
+
   // ----- UI -----
   return (
     <div className="admin-container">
@@ -653,83 +754,128 @@ export default function AdminDashboard() {
 
         {/* Clients */}
         {activeSection === "clients" && (
-          <div className="clients-dashboard-container">
-            <div className="clients-header-row">
-              <UsersIcon width={48} height={48} color="#e5d7b2" />
-              <h1 className="clients-title">Clients</h1>
+          <div className="clients-dashboard-container" style={{
+            maxWidth: 500,
+            margin: "40px auto",
+            background: "#2c2212",
+            borderRadius: "18px",
+            padding: "32px 32px 24px 32px",
+            boxShadow: "0 2px 16px rgba(0,0,0,0.18)"
+          }}>
+            <div className="clients-header-row" style={{ marginBottom: 24 }}>
+              <UsersIcon width={56} height={56} color="#e5d7b2" />
+              <h1 className="clients-title" style={{
+                fontSize: "2.2rem",
+                fontWeight: 700,
+                marginLeft: 16,
+                color: "#fff"
+              }}>Clients</h1>
             </div>
-            <div className="clients-main-row">
-              <div className="clients-table-section">
-                <div className="clients-table-header">
-                  <div className="clients-table-header-cell">NAME</div>
-                  <div className="clients-table-header-cell">STATUS</div>
-                  <div className="clients-table-header-cell">
-                    ASSIGNED AGENT
+            {/* Add Client Form */}
+            <form onSubmit={handleAddClient} style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 18,
+              marginBottom: 32
+            }}>
+              <label style={{ color: "#e5d7b2", fontWeight: 600, fontSize: "1.1rem" }}>
+                Select Property:
+                <select
+                  value={selectedPropertyId}
+                  onChange={e => setSelectedPropertyId(e.target.value)}
+                  required
+                  style={{
+                    width: "100%",
+                    marginTop: 6,
+                    padding: "10px",
+                    borderRadius: "8px",
+                    border: "1px solid #ad8b18",
+                    background: "#1a1407",
+                    color: "#fff",
+                    fontSize: "1rem"
+                  }}
+                >
+                  <option value="">--Choose Property--</option>
+                  {availableProperties.map(prop => (
+                    <option key={prop.property_id} value={prop.property_id}>
+                      {prop.description}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label style={{ color: "#e5d7b2", fontWeight: 600, fontSize: "1.1rem" }}>
+                Buyer Email:
+                <input
+                  type="email"
+                  value={buyerEmail}
+                  onChange={e => setBuyerEmail(e.target.value)}
+                  required
+                  style={{
+                    width: "100%",
+                    marginTop: 6,
+                    padding: "10px",
+                    borderRadius: "8px",
+                    border: "1px solid #ad8b18",
+                    background: "#1a1407",
+                    color: "#fff",
+                    fontSize: "1rem"
+                  }}
+                />
+              </label>
+              <button type="submit" style={{
+                padding: "12px",
+                borderRadius: "8px",
+                background: "#ad8b18",
+                color: "#222",
+                fontWeight: 700,
+                fontSize: "1.1rem",
+                border: "none",
+                cursor: "pointer",
+                marginTop: "8px"
+              }}>Add Client</button>
+              {addClientError && (
+                <div style={{ color: "#ff4444", fontWeight: 600, marginTop: 4 }}>
+                  {addClientError}
+                </div>
+              )}
+            </form>
+            {/* Display Clients */}
+            <div>
+              <h2 style={{
+                fontSize: "1.5rem",
+                fontWeight: 700,
+                color: "#e5d7b2",
+                marginBottom: "18px"
+              }}>Client List</h2>
+              {clients.map((client, idx) => (
+                <div
+                  key={idx}
+                  className="client-card"
+                  style={{
+                    marginBottom: "18px",
+                    padding: "18px",
+                    background: "#222",
+                    borderRadius: "10px",
+                    color: "#fff",
+                    boxShadow: "0 1px 8px rgba(0,0,0,0.12)"
+                  }}
+                >
+                  <div style={{ fontSize: "1.1rem", marginBottom: 6 }}>
+                    <b>Name:</b> {client.name}
                   </div>
-                  <div className="clients-table-header-cell">
-                    INQUIRIES/ VIEWINGS
+                  <div style={{ fontSize: "1.1rem", marginBottom: 6 }}>
+                    <b>Email:</b> {client.email}
+                  </div>
+                  <div style={{ fontSize: "1.1rem" }}>
+                    <b>Property:</b> {client.description}
                   </div>
                 </div>
-                {clientsData.map((client, idx) => (
-                  <div
-                    className={`clients-table-row${
-                      selectedClientIdx === idx ? " selected" : ""
-                    }`}
-                    key={idx}
-                    onClick={() => setSelectedClientIdx(idx)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <div className="clients-table-cell">{client.name}</div>
-                    <div className="clients-table-cell">{client.status}</div>
-                    <div className="clients-table-cell">{client.agent}</div>
-                    <div className="clients-table-cell">{client.inquiries}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="clients-profile-section">
-                <div className="client-profile-card">
-                  <div className="client-profile-title">Client Profile</div>
-                  <div className="client-profile-avatar"></div>
-                  <div className="client-profile-name">
-                    {clientsData[selectedClientIdx].name}
-                  </div>
-                  <div className="client-profile-contact">
-                    {clientsData[selectedClientIdx].email}
-                    <br />
-                    {clientsData[selectedClientIdx].phone}
-                  </div>
-                  <textarea
-                    className="client-profile-note"
-                    placeholder="Note"
-                    value={clientsData[selectedClientIdx].note}
-                    readOnly
-                  />
-                  Saved Properties:{" "}
-                  {clientsData[selectedClientIdx].savedProperties}
+              ))}
+              {clients.length === 0 && (
+                <div style={{ color: "#ad8b18", fontWeight: 500, marginTop: 12 }}>
+                  No clients yet.
                 </div>
-                <div className="lead-stage-tracker">
-                  <div className="lead-stage-title">Lead Stage Tracker</div>
-                  <div className="lead-stage-list">
-                    <div className="lead-stage-item">
-                      <span className="lead-stage-dot new"></span> New
-                    </div>
-                    <div className="lead-stage-item">
-                      <span className="lead-stage-dot contacted"></span>{" "}
-                      Contacted
-                    </div>
-                    <div className="lead-stage-item">
-                      <span className="lead-stage-dot viewing"></span> Viewing
-                      Schedule
-                    </div>
-                    <div className="lead-stage-item">
-                      <span className="lead-stage-dot offer"></span> Offer Made
-                    </div>
-                    <div className="lead-stage-item">
-                      <span className="lead-stage-dot closed"></span> Closed
-                    </div>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         )}

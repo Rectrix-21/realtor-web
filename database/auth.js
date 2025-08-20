@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "../database/supabase";
+import { supabase, isSupabaseConfigured } from "../database/supabase";
 
 const AuthContext = createContext(null);
 
@@ -10,10 +10,6 @@ export function AuthProvider({ children }) {
   const [role, setRole] = useState(null); // "admin" | "buyer" | null
   const [loading, setLoading] = useState(true);
 
-  console.log("user:", user);
-  console.log("role:", role);
-
-  console.log("loading:", loading);
   async function signup(email, password, username) {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (!error) {
@@ -42,90 +38,40 @@ export function AuthProvider({ children }) {
     setRole(null);
   }
 
+  // No timeout — just fetch the role
   async function fetchRole(uid) {
     if (!uid) return null;
-    const [{ data: a }, { data: b }] = await Promise.all([
-      supabase
+
+    try {
+      console.log(
+        "[AuthProvider] Attempting to fetch role for admin user:",
+        uid
+      );
+      console.log("[AuthProvider] Supabase configured:", isSupabaseConfigured);
+      const { data: a, error: e } = await supabase
         .from("Admin")
         .select("admin_id")
         .eq("admin_id", uid)
-        .maybeSingle(),
-      supabase
+        .maybeSingle();
+      console.log("[AuthProvider] Admin fetch result:", { a, e });
+      if (!e && a) return "admin";
+
+      const { data: b, error: er } = await supabase
         .from("Buyer")
         .select("buyer_id")
         .eq("buyer_id", uid)
-        .maybeSingle(),
-    ]);
-    return a ? "admin" : b ? "buyer" : null;
-  }
-
-  function withTimeout(promise, ms, label = "operation") {
-    return Promise.race([
-      promise,
-      new Promise((_, reject) =>
-        setTimeout(
-          () => reject(new Error(`${label} timed out after ${ms}ms`)),
-          ms
-        )
-      ),
-    ]);
+        .maybeSingle();
+      console.log("[AuthProvider] Buyer fetch result:", { b, er });
+      if (!er && b) return "buyer";
+    } catch (error) {
+      console.error("[AuthProvider] fetchRole error:", error);
+      return null;
+    }
   }
 
   useEffect(() => {
     let alive = true;
 
-    (async () => {
-      try {
-        console.log("[AuthProvider] calling supabase.auth.getSession()ss");
-        const { data, error } = await withTimeout(
-          supabase.auth.getSession(),
-          5000,
-          "getSession"
-        );
-        console.log("data:", data);
-        console.log("Checking alive:", alive);
-        if (!alive) return;
-
-        if (error) {
-          console.error("[AuthProvider] getSession error:", error);
-        } else {
-          console.log("[AuthProvider] getSession data:", data);
-        }
-
-        const sess = data?.session ?? null;
-        setSession(sess);
-        setUser(sess?.user ?? null);
-
-        // Guard and timeout role fetch to avoid hanging UI
-        if (sess?.user?.id) {
-          console.log("[AuthProvider] Fetching role for UID:", sess.user.id);
-          try {
-            const role = await withTimeout(
-              fetchRole(sess.user.id),
-              5000,
-              "fetchRole"
-            );
-            setRole(role);
-          } catch (e) {
-            console.error("[AuthProvider] fetchRole failed:", e);
-            setRole(null);
-          }
-        } else {
-          setRole(null);
-        }
-      } catch (e) {
-        console.error("[AuthProvider] getSession threw:", e);
-        setSession(null);
-        setUser(null);
-        setRole(null);
-      } finally {
-        if (!alive) return;
-        setLoading(false);
-        console.log("[AuthProvider] effect done");
-      }
-    })();
-
-    // 2) Listen for later changes
     const { data: sub } = supabase.auth.onAuthStateChange(
       async (event, sess) => {
         if (!alive) return;
@@ -134,17 +80,24 @@ export function AuthProvider({ children }) {
         setUser(sess?.user ?? null);
 
         if (
+          event === "INITIAL_SESSION" ||
           event === "SIGNED_IN" ||
-          event === "USER_UPDATED" ||
-          event === "TOKEN_REFRESHED"
+          event === "USER_UPDATED"
         ) {
-          // update role quietly
-          const roleResult = await fetchRole(sess?.user?.id ?? null);
-          if (alive) setRole(roleResult ?? null);
+          try {
+            const roleResult = await fetchRole(sess?.user?.id ?? null);
+            if (alive) setRole(roleResult ?? null);
+          } catch (e) {
+            console.error("[AuthProvider] role fetch failed:", e);
+            if (alive) setRole(null);
+          } finally {
+            setLoading(false);
+          }
         }
 
         if (event === "SIGNED_OUT") {
           setRole(null);
+          setLoading(false);
         }
       }
     );

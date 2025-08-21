@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -129,7 +129,7 @@ This request was sent from the Havenly Real Estate website.
 export default function ListingDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
   const id = params?.id;
 
   const [loading, setLoading] = useState(true);
@@ -192,13 +192,7 @@ export default function ListingDetailsPage() {
   }, [images]);
 
   // Check if property is bookmarked when user and property are loaded
-  useEffect(() => {
-    if (user && prop) {
-      checkBookmarkStatus();
-    }
-  }, [user, prop]);
-
-  async function checkBookmarkStatus() {
+  const checkBookmarkStatus = useCallback(async () => {
     if (!user || !prop) return;
 
     try {
@@ -207,7 +201,13 @@ export default function ListingDetailsPage() {
     } catch (error) {
       console.error("Error checking bookmark status:", error);
     }
-  }
+  }, [user, prop]);
+
+  useEffect(() => {
+    if (user && prop) {
+      checkBookmarkStatus();
+    }
+  }, [user, prop, checkBookmarkStatus]);
 
   // Handle bookmark toggle
   async function handleBookmarkToggle() {
@@ -332,11 +332,17 @@ export default function ListingDetailsPage() {
   return (
     <div className="listing-details-container">
       {/* logo */}
-      <div className="logo">
-        <span className="home-icon">&#127969;</span>
-        <div className="logo-text">
-          <span className="logo-main">Havenly</span>
-        </div>
+      <div
+        className="logo"
+        onClick={() => router.push("/")}
+        style={{ cursor: "pointer" }}
+      >
+        <Image
+          src="/images/logo/logo.png"
+          alt="Havenly Logo"
+          width={300}
+          height={80}
+        />
       </div>
 
       {/* navbar */}
@@ -679,6 +685,37 @@ export default function ListingDetailsPage() {
           </div>
         </div>
       )}
+
+      {/* Simple Mobile Bottom Navigation */}
+      <nav className="mobile-bottom-nav">
+        <Link href="/" className="mobile-nav-item">
+          <span>Home</span>
+        </Link>
+        <Link href="/contact" className="mobile-nav-item">
+          <span>About</span>
+        </Link>
+        <Link href="/view-listings" className="mobile-nav-item">
+          <span>Properties</span>
+        </Link>
+        {user && (
+          <Link href="/saved-properties" className="mobile-nav-item">
+            <span>Saved</span>
+          </Link>
+        )}
+        <Link href="/careers" className="mobile-nav-item">
+          <span>Careers</span>
+        </Link>
+        {user && role === "buyer" && (
+          <Link href="/my-applications" className="mobile-nav-item">
+            <span>My Apps</span>
+          </Link>
+        )}
+        {user && role === "admin" && (
+          <Link href="/admin-dashboard" className="mobile-nav-item">
+            <span>Admin</span>
+          </Link>
+        )}
+      </nav>
     </div>
   );
 }

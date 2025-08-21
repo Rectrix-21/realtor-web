@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "../../database/auth";
@@ -15,15 +15,7 @@ export default function SavedProperties() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (!authLoading && user) {
-      loadBookmarks();
-    } else if (!authLoading && !user) {
-      setLoading(false);
-    }
-  }, [user, authLoading]);
-
-  async function loadBookmarks() {
+  const loadBookmarks = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
@@ -42,7 +34,15 @@ export default function SavedProperties() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      loadBookmarks();
+    } else if (!authLoading && !user) {
+      setLoading(false);
+    }
+  }, [user, authLoading, loadBookmarks]);
 
   async function handleRemoveBookmark(propertyId) {
     if (!user) return;
@@ -166,7 +166,7 @@ export default function SavedProperties() {
           </li>
           {user && (
             <li className="navbar-li">
-              <Link href="/saved-properties">❤️ Saved</Link>
+              <Link href="/saved-properties">Saved</Link>
             </li>
           )}
           <li className="navbar-li">
@@ -178,6 +178,37 @@ export default function SavedProperties() {
             </li>
           )}
         </ul>
+      </nav>
+
+      {/* Simple Mobile Bottom Navigation */}
+      <nav className="mobile-bottom-nav">
+        <Link href="/" className="mobile-nav-item">
+          <span>Home</span>
+        </Link>
+        <Link href="/contact" className="mobile-nav-item">
+          <span>About</span>
+        </Link>
+        <Link href="/view-listings" className="mobile-nav-item">
+          <span>Properties</span>
+        </Link>
+        {user && (
+          <Link href="/saved-properties" className="mobile-nav-item">
+            <span>Saved</span>
+          </Link>
+        )}
+        <Link href="/careers" className="mobile-nav-item">
+          <span>Careers</span>
+        </Link>
+        {user && role === "buyer" && (
+          <Link href="/my-applications" className="mobile-nav-item">
+            <span>My Apps</span>
+          </Link>
+        )}
+        {user && role === "admin" && (
+          <Link href="/admin-dashboard" className="mobile-nav-item">
+            <span>Admin</span>
+          </Link>
+        )}
       </nav>
 
       {user && (

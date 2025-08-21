@@ -6,7 +6,7 @@ import { useAuth } from "../../database/auth";
 import "./styles.css";
 
 export default function MyApplicationsPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -192,8 +192,8 @@ export default function MyApplicationsPage() {
                   <div className="application-footer">
                     {statusInfo.text === "Pending Review" && (
                       <p className="status-message">
-                        Your application is being reviewed. We&apos;ll contact you
-                        soon!
+                        Your application is being reviewed. We&apos;ll contact
+                        you soon!
                       </p>
                     )}
                     {statusInfo.text === "Approved" && (
@@ -204,8 +204,8 @@ export default function MyApplicationsPage() {
                     )}
                     {statusInfo.text === "Not Selected" && (
                       <p className="status-message">
-                        Thank you for your interest. We&apos;ll keep your application
-                        on file for future opportunities.
+                        Thank you for your interest. We&apos;ll keep your
+                        application on file for future opportunities.
                       </p>
                     )}
                   </div>
@@ -221,6 +221,37 @@ export default function MyApplicationsPage() {
           </Link>
         </div>
       </div>
+
+      {/* Simple Mobile Bottom Navigation */}
+      <nav className="mobile-bottom-nav">
+        <Link href="/" className="mobile-nav-item">
+          <span>Home</span>
+        </Link>
+        <Link href="/contact" className="mobile-nav-item">
+          <span>About</span>
+        </Link>
+        <Link href="/view-listings" className="mobile-nav-item">
+          <span>Properties</span>
+        </Link>
+        {user && (
+          <Link href="/saved-properties" className="mobile-nav-item">
+            <span>Saved</span>
+          </Link>
+        )}
+        <Link href="/careers" className="mobile-nav-item">
+          <span>Careers</span>
+        </Link>
+        {user && role === "buyer" && (
+          <Link href="/my-applications" className="mobile-nav-item">
+            <span>My Apps</span>
+          </Link>
+        )}
+        {user && role === "admin" && (
+          <Link href="/admin-dashboard" className="mobile-nav-item">
+            <span>Admin</span>
+          </Link>
+        )}
+      </nav>
     </div>
   );
 }

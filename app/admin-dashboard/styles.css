@@ -729,18 +729,311 @@ body {
 }
 
 /* Job Portal & Applications Specific Styles */
-.job-portal-content,
-.applications-content {
-  display: flex;
-  gap: 20px;
-  height: calc(100vh - 120px);
+.job-portal-dashboard-container {
+  padding: 20px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  margin: 20px;
 }
 
-.contractor-list {
-  flex: 1;
-  max-height: 100%;
+.job-portal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #333;
+}
+
+.job-portal-title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.job-portal-title-section h1 {
+  color: #e5d7b2;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.job-portal-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat-card {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 15px 20px;
+  text-align: center;
+  min-width: 120px;
+}
+
+.stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #bfa76a;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+/* Applications Table */
+.applications-table-container {
+  background: #222;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #333;
+}
+
+.applications-table-header {
+  display: flex;
+  background: #333;
+  padding: 0;
+  border-bottom: 2px solid #444;
+}
+
+.table-header-cell {
+  padding: 15px 12px;
+  font-weight: 600;
+  color: #e5d7b2;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-right: 1px solid #444;
+}
+
+.table-header-cell:last-child {
+  border-right: none;
+}
+
+.applications-table-body {
+  max-height: 500px;
   overflow-y: auto;
-  padding-right: 10px;
+}
+
+.application-row {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border-bottom: 1px solid #333;
+  transition: background-color 0.2s ease;
+}
+
+.application-row:hover {
+  background: #2a2a2a;
+}
+
+.table-cell {
+  padding: 15px 12px;
+  border-right: 1px solid #333;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.table-cell:last-child {
+  border-right: none;
+}
+
+.applicant-info .applicant-name {
+  font-weight: 600;
+  color: #e5d7b2;
+  margin-bottom: 4px;
+}
+
+.applicant-info .applicant-id {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.contact-info .contact-email {
+  margin-bottom: 4px;
+  color: #ccc;
+}
+
+.contact-info .contact-phone {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.application-date {
+  color: #ccc;
+}
+
+/* Status Dropdown */
+.status-dropdown {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.status-unemployed {
+  background: #003d74;
+}
+
+.status-employed {
+  background: #0c7400;
+}
+
+.status-rejected {
+  background: #740000;
+}
+
+.status-dropdown:hover {
+  opacity: 0.8;
+}
+
+/* Skills Button */
+.skills-btn {
+  background: #444;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.skills-btn:hover {
+  background: #555;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 70px;
+}
+
+.approve-btn {
+  background: #0c7400;
+  color: white;
+}
+
+.approve-btn:hover:not(:disabled) {
+  background: #0a5f00;
+}
+
+.reject-btn {
+  background: #740000;
+  color: white;
+}
+
+.reject-btn:hover:not(:disabled) {
+  background: #5a0000;
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Skills Modal */
+.skills-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.skills-modal {
+  background: #222;
+  border: 1px solid #444;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+.skills-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid #444;
+  background: #333;
+}
+
+.skills-modal-header h3 {
+  color: #e5d7b2;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background: #444;
+  color: #fff;
+}
+
+.skills-modal-content {
+  padding: 25px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.skill-tag {
+  background: #bfa76a;
+  color: #000;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.no-skills {
+  text-align: center;
+  color: #888;
+  font-style: italic;
 }
 
 /* Skills Right Panel */
@@ -803,4 +1096,266 @@ body {
   line-height: 1.6;
   color: #ccc;
   font-size: 14px;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  /* Admin Container - Stack sidebar and content */
+  .admin-container {
+    flex-direction: column;
+  }
+
+  /* Sidebar - Convert to top bar on mobile */
+  .sidebar {
+    width: 100%;
+    padding: 10px;
+    flex-direction: row;
+    overflow-x: auto;
+    height: auto;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .sidebar.closed {
+    width: 100%;
+  }
+
+  .sidebar-menu {
+    display: flex;
+    flex-direction: row;
+    margin: 0;
+    padding: 0;
+    gap: 5px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .menu-item {
+    margin: 0;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    min-width: auto;
+  }
+
+  .menu-item-text {
+    display: none !important;
+  }
+
+  /* Main Content - Full width with padding */
+  .ad-main-content {
+    padding: 15px;
+    height: auto;
+  }
+
+  /* Top Bar - Stack buttons */
+  .top-bar {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .ad-top-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  /* Applications Header */
+  .applications-header-row {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .applications-title-row {
+    text-align: center;
+  }
+
+  .applications-title {
+    font-size: 1.8rem;
+  }
+
+  /* Status Tabs - Stack vertically */
+  .applications-status-tabs {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .status-tab {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  /* Search Bar */
+  .search-input {
+    width: 100%;
+    font-size: 1rem;
+    padding: 12px;
+  }
+
+  /* Applications Content */
+  .applications-content {
+    flex-direction: column;
+  }
+
+  /* Application Cards - Mobile Layout */
+  .application-card {
+    flex-direction: column;
+    align-items: stretch;
+    margin: 0 0 15px 0;
+    padding: 15px;
+    gap: 15px;
+  }
+
+  .application-info {
+    gap: 8px;
+  }
+
+  .application-name {
+    font-size: 1.1rem;
+  }
+
+  .application-date,
+  .application-property,
+  .application-contact {
+    font-size: 0.9rem;
+  }
+
+  /* Contractor Actions - Mobile Layout */
+  .application-actions {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .contractor-status {
+    flex: 1;
+    padding: 8px 12px !important;
+    font-size: 0.85rem !important;
+    border-radius: 6px !important;
+  }
+
+  .contractor-more-btn {
+    padding: 8px 12px !important;
+    font-size: 0.85rem !important;
+    border-radius: 6px !important;
+    white-space: nowrap;
+  }
+
+  /* Skills Panel - Full screen modal on mobile */
+  .skills-right-panel {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 1000;
+    border-radius: 0 !important;
+  }
+
+  .skills-panel-header {
+    padding: 15px;
+    border-bottom: 2px solid #444;
+  }
+
+  .skills-panel-header h3 {
+    font-size: 1.2rem;
+  }
+
+  .close-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 1.2rem;
+  }
+
+  /* Dashboard Stats - Stack vertically */
+  .stats-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .stat-card {
+    margin: 0;
+    padding: 15px;
+  }
+
+  /* Property Management - Mobile friendly */
+  .property-form {
+    padding: 15px;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 1rem;
+    padding: 10px;
+  }
+
+  /* Buttons */
+  .btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra small screens */
+  .ad-main-content {
+    padding: 10px;
+  }
+
+  .applications-title {
+    font-size: 1.5rem;
+  }
+
+  .application-card {
+    padding: 12px;
+    margin: 0 0 12px 0;
+  }
+
+  .application-name {
+    font-size: 1rem;
+  }
+
+  .application-date,
+  .application-property,
+  .application-contact {
+    font-size: 0.8rem;
+  }
+
+  .contractor-status,
+  .contractor-more-btn {
+    font-size: 0.8rem !important;
+    padding: 6px 10px !important;
+  }
+
+  /* Menu items even smaller */
+  .menu-item {
+    padding: 6px 8px;
+    font-size: 0.7rem;
+  }
+
+  /* Status tabs smaller */
+  .status-tab {
+    padding: 10px;
+    font-size: 0.8rem;
+  }
 }

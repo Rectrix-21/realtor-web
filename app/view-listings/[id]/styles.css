@@ -483,6 +483,12 @@
   z-index: 20;
 }
 
+.logo img {
+  height: 75px;
+  width: auto;
+  max-width: 500px;
+}
+
 .home-icon {
   font-size: 2.5rem;
   color: #fff;
@@ -815,5 +821,67 @@
 
   .viewing-modal-content {
     padding: 20px;
+  }
+}
+
+/* Simple Mobile Bottom Navigation */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(139, 111, 71, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 0;
+  z-index: 1000;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+  color: white;
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: color 0.2s;
+  min-width: 60px;
+  text-align: center;
+}
+
+.mobile-nav-item:hover {
+  color: #d4af37;
+}
+
+.mobile-nav-item span {
+  margin-top: 2px;
+}
+
+@media (max-width: 768px) {
+  .listing-details-container {
+    padding-bottom: 80px; /* Make room for bottom nav */
+  }
+
+  /* Hide desktop navigation on mobile */
+  .navbar {
+    display: none !important;
+  }
+
+  /* Show mobile bottom navigation */
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-nav-item {
+    font-size: 0.7rem;
+    padding: 6px 2px;
+    min-width: 50px;
   }
 }

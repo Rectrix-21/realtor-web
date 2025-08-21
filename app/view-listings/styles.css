@@ -351,3 +351,196 @@ body {
   font-size: "1.2rem";
   font-weight: "500";
 }
+
+/* Simple Mobile Bottom Navigation */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(139, 111, 71, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 0;
+  z-index: 1000;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+  color: white;
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: color 0.2s;
+  min-width: 60px;
+  text-align: center;
+}
+
+.mobile-nav-item:hover {
+  color: #d4af37;
+}
+
+.mobile-nav-item span {
+  margin-top: 2px;
+}
+
+/* Mobile and Responsive Design */
+@media (max-width: 1024px) {
+  .properties-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 0 20px;
+  }
+
+  .filter-section {
+    padding: 20px;
+  }
+
+  .filter-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .view-listings-container {
+    padding: 0;
+    padding-bottom: 80px; /* Make room for bottom nav */
+  }
+
+  /* Hide desktop navigation on mobile */
+  .desktop-nav {
+    display: none !important;
+  }
+
+  /* Show mobile bottom navigation */
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+
+  .navbar {
+    padding: 0 15px;
+  }
+
+  .properties-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 0 15px;
+  }
+
+  .property-card {
+    max-width: 100%;
+  }
+
+  .property-image {
+    height: 200px;
+  }
+
+  .filter-section {
+    padding: 15px;
+  }
+
+  .filter-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .filter-group label {
+    font-size: 0.9rem;
+  }
+
+  .filter-group select,
+  .filter-group input {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+
+  .filter-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .filter-btn {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .property-info h3 {
+    font-size: 1.1rem;
+  }
+
+  .property-price {
+    font-size: 1.3rem;
+  }
+
+  .property-details {
+    font-size: 0.85rem;
+  }
+
+  .bookmark-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .view-listings-container {
+    padding: 0;
+    padding-bottom: 80px;
+  }
+
+  .properties-grid {
+    padding: 0 10px;
+  }
+
+  .property-card {
+    padding: 12px;
+  }
+
+  .property-image {
+    height: 180px;
+  }
+
+  .property-info {
+    padding: 12px;
+  }
+
+  .property-info h3 {
+    font-size: 1rem;
+    margin-bottom: 6px;
+  }
+
+  .property-price {
+    font-size: 1.2rem;
+  }
+
+  .property-details {
+    font-size: 0.8rem;
+    gap: 8px;
+  }
+
+  .filter-section {
+    padding: 12px;
+  }
+
+  .filter-group {
+    margin-bottom: 12px;
+  }
+
+  .bookmark-btn {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+
+  .mobile-nav-item {
+    font-size: 0.7rem;
+    padding: 6px 2px;
+    min-width: 50px;
+  }
+}

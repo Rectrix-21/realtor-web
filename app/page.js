@@ -150,16 +150,6 @@ export default function Home() {
         </h1>
         <p className="subtitle">Turning Your Vision Of The Perfect Home</p>
 
-        {/* Search Bar */}
-        <div className="search-bar">
-          <input
-            type="text"
-            placeholder="Search property by Location or Postal code..."
-            className="search-input"
-          />
-          <span className="search-icon">🔍</span>
-        </div>
-
         <div className="view-listings">
           <Link href="/view-listings">
             <button className="custom-button-home view-button">

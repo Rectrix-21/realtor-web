@@ -175,17 +175,6 @@ export default function Authenticate() {
             >
               Log In
             </button>
-            <button
-              onClick={() => {
-                setTab("admin");
-                resetForm();
-              }}
-              className={`auth-tab ${
-                tab === "admin" ? "active-tab" : "inactive-tab"
-              }`}
-            >
-              Admin Login
-            </button>
           </div>
 
           {error && (
@@ -271,34 +260,6 @@ export default function Authenticate() {
                 disabled={isProcessing}
               >
                 {isProcessing ? "Logging In..." : "Log In"}
-              </button>
-            </form>
-          )}
-
-          {tab === "admin" && (
-            <form onSubmit={handleAdminLogin} className="auth-form">
-              <input
-                type="text"
-                placeholder="Admin ID"
-                className="input-field"
-                value={adminId}
-                onChange={(e) => setAdminId(e.target.value)}
-                required
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                className="input-field"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <button
-                type="submit"
-                className="auth-custom-button"
-                disabled={isProcessing || loading}
-              >
-                {isProcessing ? "Verifying..." : "Admin Login"}
               </button>
             </form>
           )}

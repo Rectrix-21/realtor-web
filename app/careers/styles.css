@@ -170,3 +170,174 @@
   font-weight: 600;
   margin-top: 8px;
 }
+
+/* Mobile and Responsive Design */
+@media (max-width: 768px) {
+  .navbar {
+    position: fixed;
+    top: 15px;
+    left: 10px;
+    right: 10px;
+    transform: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+  }
+
+  .navbar-ul {
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px 0;
+    align-items: center;
+  }
+
+  .navbar-li {
+    width: 100%;
+    text-align: center;
+    padding: 8px 12px;
+    font-size: 0.95rem;
+  }
+
+  .careers-container {
+    max-width: 100%;
+    margin: 20px;
+    margin-top: 180px;
+    padding: 0;
+  }
+
+  .careers-container h1 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+
+  .careers-container p {
+    font-size: 1rem;
+    margin-bottom: 30px;
+  }
+
+  .jobs-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .job-card {
+    padding: 20px;
+  }
+
+  .job-card h3 {
+    font-size: 1.3rem;
+  }
+
+  .job-card p {
+    font-size: 0.9rem;
+  }
+
+  .apply-btn {
+    width: 100%;
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .career-form {
+    padding: 20px;
+    max-width: 100%;
+  }
+
+  .career-form h2 {
+    font-size: 1.5rem;
+  }
+
+  .career-form label {
+    font-size: 0.9rem;
+  }
+
+  .career-form input,
+  .career-form textarea,
+  .career-form select {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+
+  .career-form button {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+  }
+
+  .form-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    top: 10px;
+    left: 5px;
+    right: 5px;
+    padding: 10px 15px;
+  }
+
+  .navbar-ul {
+    padding: 8px 0;
+  }
+
+  .navbar-li {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+
+  .careers-container {
+    margin: 15px;
+    margin-top: 160px;
+  }
+
+  .careers-container h1 {
+    font-size: 1.5rem;
+  }
+
+  .careers-container p {
+    font-size: 0.9rem;
+  }
+
+  .job-card {
+    padding: 15px;
+  }
+
+  .job-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .job-card p {
+    font-size: 0.85rem;
+  }
+
+  .apply-btn {
+    padding: 8px;
+    font-size: 0.8rem;
+  }
+
+  .career-form {
+    padding: 15px;
+  }
+
+  .career-form h2 {
+    font-size: 1.3rem;
+  }
+
+  .career-form label {
+    font-size: 0.85rem;
+  }
+
+  .career-form input,
+  .career-form textarea,
+  .career-form select {
+    font-size: 0.85rem;
+    padding: 6px;
+  }
+
+  .career-form button {
+    padding: 10px;
+    font-size: 0.85rem;
+  }
+}

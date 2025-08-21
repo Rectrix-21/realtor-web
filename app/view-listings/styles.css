@@ -351,3 +351,155 @@ body {
   font-size: "1.2rem";
   font-weight: "500";
 }
+
+/* Mobile and Responsive Design */
+@media (max-width: 1024px) {
+  .properties-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 0 20px;
+  }
+
+  .filter-section {
+    padding: 20px;
+  }
+
+  .filter-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .view-listings-container {
+    padding: 0;
+  }
+
+  .navbar {
+    padding: 0 15px;
+  }
+
+  .navbar-ul {
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px 0;
+  }
+
+  .navbar-li {
+    width: 100%;
+    text-align: center;
+  }
+
+  .properties-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 0 15px;
+  }
+
+  .property-card {
+    max-width: 100%;
+  }
+
+  .property-image {
+    height: 200px;
+  }
+
+  .filter-section {
+    padding: 15px;
+  }
+
+  .filter-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .filter-group label {
+    font-size: 0.9rem;
+  }
+
+  .filter-group select,
+  .filter-group input {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+
+  .filter-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .filter-btn {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .property-info h3 {
+    font-size: 1.1rem;
+  }
+
+  .property-price {
+    font-size: 1.3rem;
+  }
+
+  .property-details {
+    font-size: 0.85rem;
+  }
+
+  .bookmark-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .view-listings-container {
+    padding: 0;
+  }
+
+  .properties-grid {
+    padding: 0 10px;
+  }
+
+  .property-card {
+    padding: 12px;
+  }
+
+  .property-image {
+    height: 180px;
+  }
+
+  .property-info {
+    padding: 12px;
+  }
+
+  .property-info h3 {
+    font-size: 1rem;
+    margin-bottom: 6px;
+  }
+
+  .property-price {
+    font-size: 1.2rem;
+  }
+
+  .property-details {
+    font-size: 0.8rem;
+    gap: 8px;
+  }
+
+  .filter-section {
+    padding: 12px;
+  }
+
+  .filter-group {
+    margin-bottom: 12px;
+  }
+
+  .bookmark-btn {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+
+  .navbar-ul {
+    padding: 15px 0;
+  }
+}

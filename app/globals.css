@@ -4,10 +4,22 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Enable smooth scrolling */
+  scroll-behavior: smooth;
+  /* Prevent horizontal scroll on mobile */
+  overflow-x: hidden;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: linear-gradient(45deg, #000, #241b0c 50%, #000 100%);
   color: #fff;
+  /* Prevent horizontal scroll */
+  overflow-x: hidden;
+  /* Better text rendering on mobile */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
   min-height: 100vh;
 }

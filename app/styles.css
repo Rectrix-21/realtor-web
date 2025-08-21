@@ -213,3 +213,111 @@
 .view-button:hover {
   background-color: #8b6f47;
 }
+
+/* Mobile and Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 20px;
+  }
+
+  .logo {
+    position: absolute;
+    top: 20px;
+    left: 12px;
+    font-size: 1rem;
+  }
+
+  .logo img {
+    height: 60px;
+    max-width: 200px;
+  }
+
+  .signup-btn {
+    position: absolute;
+    top: 20px;
+    right: 12px;
+  }
+
+  .custom-button-home {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+
+  .hero-content {
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .hero-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 16px;
+  }
+
+  .hero-content p {
+    font-size: 1rem;
+    margin-bottom: 30px;
+    max-width: 100%;
+  }
+
+  .search-container {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .search-input {
+    font-size: 1rem;
+    padding: 12px 50px 12px 16px;
+  }
+
+  .navbar-ul {
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px;
+  }
+
+  .navbar-li {
+    width: 100%;
+    text-align: center;
+  }
+
+  .view-listings {
+    margin-top: 40px;
+  }
+
+  .view-button {
+    width: 100%;
+    max-width: 300px;
+    padding: 12px 20px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+
+  .hero-content p {
+    font-size: 0.9rem;
+  }
+
+  .logo img {
+    height: 50px;
+    max-width: 150px;
+  }
+
+  .custom-button-home {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .search-input {
+    font-size: 0.9rem;
+    padding: 10px 40px 10px 12px;
+  }
+
+  .search-icon {
+    right: 12px;
+    top: 10px;
+  }
+}

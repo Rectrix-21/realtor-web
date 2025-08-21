@@ -99,6 +99,11 @@ export function AuthProvider({ children }) {
 
           // Otherwise fetch once and cache
           try {
+            console.log("[AuthProvider] Fetching role for user:", uid);
+            console.log(
+              "[AuthProvider] Cached role:",
+              cachedRoleRef.current.role
+            );
             const roleResult = await fetchRole(uid);
             if (!alive) return;
             setRole(roleResult);

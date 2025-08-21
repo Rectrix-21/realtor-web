@@ -77,7 +77,7 @@ export default function Home() {
             </li>
           )}
           <li className="navbar-li">
-            <Link href="/careers">Career opportunity</Link>
+            <Link href="/careers">Career Opportunity</Link>
           </li>
           {user && role === "buyer" && (
             <li className="navbar-li">

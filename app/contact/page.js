@@ -2,20 +2,23 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import "./styles.css";
 import { useAuth } from "../../database/auth";
 
 export default function Contact() {
   const { user } = useAuth();
+  const router = useRouter();
 
   return (
     <div className="contact-page-container">
       {/* Navbar */}
-      <div className="logo-bar">
-        <span className="home-icon">&#127969;</span>
-        <div className="logo-text">
-          <span className="logo-main">HAVENLY</span>
-        </div>
+      <div
+        className="logo-bar"
+        onClick={() => router.push("/")}
+        style={{ cursor: "pointer" }}
+      >
+        <img src="/images/logo/logo.png" alt="Havenly Logo" />
       </div>
       <nav className="navbar">
         <ul className="navbar-ul">

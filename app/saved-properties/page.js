@@ -166,7 +166,7 @@ export default function SavedProperties() {
           </li>
           {user && (
             <li className="navbar-li">
-              <Link href="/saved-properties">❤️ Saved</Link>
+              <Link href="/saved-properties">Saved</Link>
             </li>
           )}
           <li className="navbar-li">

@@ -332,11 +332,12 @@ export default function ListingDetailsPage() {
   return (
     <div className="listing-details-container">
       {/* logo */}
-      <div className="logo">
-        <span className="home-icon">&#127969;</span>
-        <div className="logo-text">
-          <span className="logo-main">Havenly</span>
-        </div>
+      <div
+        className="logo"
+        onClick={() => router.push("/")}
+        style={{ cursor: "pointer" }}
+      >
+        <img src="/images/logo/logo.png" alt="Havenly Logo" />
       </div>
 
       {/* navbar */}

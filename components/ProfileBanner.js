@@ -6,12 +6,12 @@ import { supabase } from "../database/supabase";
 import "./ProfileBanner.css";
 
 export default function ProfileBanner() {
-  const { user, signOut } = useAuth();
+  const { user, userProfile, signOut } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showChangeUsername, setShowChangeUsername] = useState(false);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
-  const [username, setUsername] = useState("");
+  const [newUsername, setNewUsername] = useState(""); // For form input
   const [passwords, setPasswords] = useState({
     current: "",
     new: "",
@@ -22,31 +22,15 @@ export default function ProfileBanner() {
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Get user's first name or email for display
-  const displayName = username || user?.email?.split("@")[0] || "User";
+  // Get user's display name - prioritize userProfile name, fallback to email prefix
+  const displayName = userProfile?.name || user?.email?.split("@")[0] || "User";
 
-  // Fetch user's current username
+  // Initialize form with current username when opening change username modal
   useEffect(() => {
-    if (user) {
-      fetchUsername();
+    if (showChangeUsername && userProfile?.name) {
+      setNewUsername(userProfile.name);
     }
-  }, [user]);
-
-  const fetchUsername = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("Buyer")
-        .select("name")
-        .eq("buyer_id", user.id)
-        .single();
-
-      if (data?.name) {
-        setUsername(data.name);
-      }
-    } catch (err) {
-      console.log("Could not fetch username:", err);
-    }
-  };
+  }, [showChangeUsername, userProfile?.name]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -68,7 +52,7 @@ export default function ProfileBanner() {
 
   const handleChangeUsername = async (e) => {
     e.preventDefault();
-    if (!username.trim()) {
+    if (!newUsername.trim()) {
       setError("Username cannot be empty");
       return;
     }
@@ -77,12 +61,14 @@ export default function ProfileBanner() {
     try {
       const { error } = await supabase
         .from("Buyer")
-        .update({ name: username })
+        .update({ name: newUsername })
         .eq("buyer_id", user.id);
 
       if (error) throw error;
 
-      setSuccess("Username updated successfully!");
+      setSuccess(
+        "Username updated successfully! Please refresh to see changes."
+      );
       setShowChangeUsername(false);
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
@@ -279,8 +265,8 @@ export default function ProfileBanner() {
               <h4>Change Username</h4>
               <input
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
                 placeholder="Enter new username"
                 className="profile-input"
                 disabled={loading}

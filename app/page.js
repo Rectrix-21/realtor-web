@@ -5,19 +5,29 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import "./styles.css";
 import { useAuth } from "../database/auth";
 import ProfileBanner from "../components/ProfileBanner";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function Home() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [propertiesOpen, setPropertiesOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const { role, user, loading } = useAuth();
+  const router = useRouter();
 
-  if (loading) {
-    return <div>Loading...</div>;
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Show loading state until both mounted and auth is loaded
+  if (!mounted || loading) {
+    return <LoadingSpinner />;
   }
 
   const handleDropdownItemClick = (e, item) => {
@@ -43,8 +53,12 @@ export default function Home() {
       <div className="overlay"></div>
 
       {/* Logo */}
-      <div className="logo">
-        <span className="home-icon">&#127969;</span> HAVENLY
+      <div
+        className="logo"
+        onClick={() => router.push("/")}
+        style={{ cursor: "pointer" }}
+      >
+        <img src="/images/logo/logo.png" alt="Havenly Logo" />
       </div>
 
       {user ? (
@@ -84,13 +98,11 @@ export default function Home() {
               <Link href="/my-applications">My Applications</Link>
             </li>
           )}
-          <li>
-            {role ? (
-              <div className="navbar-li">
-                <Link href="/admin-dashboard">Admin Dashboard</Link>
-              </div>
-            ) : null}
-          </li>
+          {user && role === "admin" && (
+            <li className="navbar-li">
+              <Link href="/admin-dashboard">Admin Dashboard</Link>
+            </li>
+          )}
         </ul>
       </nav>
 

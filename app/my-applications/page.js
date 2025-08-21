@@ -192,8 +192,8 @@ export default function MyApplicationsPage() {
                   <div className="application-footer">
                     {statusInfo.text === "Pending Review" && (
                       <p className="status-message">
-                        Your application is being reviewed. We&apos;ll contact you
-                        soon!
+                        Your application is being reviewed. We&apos;ll contact
+                        you soon!
                       </p>
                     )}
                     {statusInfo.text === "Approved" && (
@@ -204,8 +204,8 @@ export default function MyApplicationsPage() {
                     )}
                     {statusInfo.text === "Not Selected" && (
                       <p className="status-message">
-                        Thank you for your interest. We&apos;ll keep your application
-                        on file for future opportunities.
+                        Thank you for your interest. We&apos;ll keep your
+                        application on file for future opportunities.
                       </p>
                     )}
                   </div>

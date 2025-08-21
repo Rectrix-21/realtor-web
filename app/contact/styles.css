@@ -2,7 +2,7 @@
 .contact-page-container {
   background: linear-gradient(180deg, #18140c 0%, #2c2416 100%);
   min-height: 100vh;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   color: #fff;
 }
 
@@ -48,7 +48,7 @@
 }
 
 .navbar-li:hover {
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
   color: #d4af37;
 }
 
@@ -58,9 +58,10 @@
   gap: 12px;
 }
 
-.home-icon {
-  font-size: 2.2rem;
-  color: #fff;
+.logo img {
+  height: 75px;
+  width: auto;
+  max-width: 500px;
 }
 
 .logo-bar {
@@ -74,9 +75,10 @@
   background: none;
 }
 
-.home-icon {
-  font-size: 2.2rem;
-  color: #fff;
+.logo-bar img {
+  height: 80px;
+  width: auto;
+  max-width: 300px;
 }
 
 .logo-text {
@@ -124,7 +126,10 @@
 
 .hero-overlay {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(24, 20, 12, 0.45);
   z-index: 2;
 }
@@ -142,7 +147,7 @@
 /* Mission Section */
 
 .mission-section {
-  background: url('/images/about/2.png') center/cover no-repeat;
+  background: url("/images/about/2.png") center/cover no-repeat;
   padding: 64px 0;
   display: flex;
   justify-content: center;
@@ -150,7 +155,7 @@
 }
 
 .mission-box {
-  background: rgba(0,0,0,0.55);
+  background: rgba(0, 0, 0, 0.55);
   border-radius: 0;
   border: 2px solid #e5d7b2;
   padding: 48px 32px;
@@ -192,7 +197,7 @@
   padding: 32px 28px;
   max-width: 700px;
   width: 100%;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   margin-bottom: 24px;
   display: flex;
   flex-direction: column;
@@ -234,7 +239,7 @@
   background: #18140c;
   border-radius: 12px;
   padding: 8px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .gallery-img {
@@ -259,7 +264,7 @@
   padding: 56px 48px;
   max-width: 980px;
   width: 100%;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   border: 1px solid #e5d7b2;
   text-align: center;
 }

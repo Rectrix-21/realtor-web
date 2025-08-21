@@ -247,12 +247,6 @@ export default function AdminDashboard() {
     price: "",
   });
 
-  const [availableProperties, setAvailableProperties] = useState([]);
-  const [selectedPropertyId, setSelectedPropertyId] = useState("");
-  const [buyerEmail, setBuyerEmail] = useState("");
-  const [addClientError, setAddClientError] = useState("");
-  const [clients, setClients] = useState([]);
-
   console.log("User role:", role);
 
   useEffect(() => {
@@ -286,56 +280,17 @@ export default function AdminDashboard() {
     console.log("Property form data:", propertyForm);
   }, [uploadedFiles, propertyForm]);
 
-  useEffect(() => {
-    async function fetchAvailableProperties() {
-      const { data, error } = await supabase
-        .from("Property")
-        .select("property_id, description")
-        .is("buyer_id", null);
-      if (!error) setAvailableProperties(data || []);
-    }
-    fetchAvailableProperties();
-  }, []);
-
-  useEffect(() => {
-    async function fetchClients() {
-      const { data: properties } = await supabase
-        .from("Property")
-        .select("property_id, description, buyer_id")
-        .not("buyer_id", "is", null);
-      if (!properties) return;
-
-      const clientList = await Promise.all(
-        properties.map(async (prop) => {
-          const { data: buyer } = await supabase
-            .from("Buyer")
-            .select("name, email")
-            .eq("buyer_id", prop.buyer_id)
-            .single();
-          return {
-            name: buyer?.name,
-            email: buyer?.email,
-            description: prop.description,
-          };
-        })
-      );
-      setClients(clientList);
-    }
-    fetchClients();
-  }, []);
-
-  useEffect(() => {
-    if (role !== "admin") {
-      router.push("/"); // redirect if not admin
-    }
-  }, [loading, role, router]);
-
-  if (loading || role !== "admin") {
+  if (loading) {
     return (
-      <div>
-        <h1>Loading...</h1>
+      <div className="loading-screen">
+        <p>Loading...</p>
       </div>
     );
+  }
+
+  if (role !== "admin") {
+    router.push("/"); // redirect if not admin
+    return null; // prevent rendering anything else
   }
 
   const chartData = {
@@ -388,13 +343,10 @@ export default function AdminDashboard() {
 
   // Upload images immediately, track files for cleanup, store public URLs
   async function handlePropertyImageChange(e) {
-    console.log("Hello");
     const files = Array.from(e.target.files || []);
-    console.log("Selected files:", files);
     for (const file of files) {
       try {
         const { publicUrl, filePath } = await uploadPropertyImage(file);
-        console.log("Uploaded file:", file.name, "Public URL:", publicUrl);
         setPropertyForm((prev) => ({
           ...prev,
           image_urls: [...prev.image_urls, publicUrl],
@@ -646,122 +598,18 @@ export default function AdminDashboard() {
     }
   }
 
-  async function handleStatusChange(employeeId, currentElement) {
-    // remove any open dropdown
-    const existing = document.querySelector(".status-dropdown");
-    if (existing) existing.remove();
+  async function handleStatusChange(employeeId, newStatus) {
+    if (!newStatus) return;
 
-    const dd = document.createElement("select");
-    dd.className = "status-dropdown";
-
-    ["Application Status", "Hired", "Fired", "Pending"].forEach((txt, i) => {
-      const opt = document.createElement("option");
-      opt.value = i === 0 ? "" : txt;
-      opt.textContent = txt;
-      opt.disabled = i === 0;
-      opt.selected = i === 0;
-      dd.appendChild(opt);
-    });
-
-    // position directly under the clicked element
-    const r = currentElement.getBoundingClientRect();
-    const gap = 4; // small space under the button
-
-    dd.style.position = "fixed";
-    dd.style.top = `${r.bottom + gap}px`;
-    dd.style.left = `${r.left}px`;
-    dd.style.width = `${r.width}px`; // match trigger width
-    dd.style.maxWidth = "1000px"; // never overflow viewport
-    dd.style.zIndex = "1000";
-
-    // minimal styling (kept small)
-    dd.style.padding = "4px";
-    dd.style.border = "1px solid #444";
-    dd.style.borderRadius = "4px";
-    dd.style.backgroundColor = "#333";
-    dd.style.color = "#fff";
-    dd.style.fontSize = "12px";
-    dd.style.cursor = "pointer";
-
-    document.body.appendChild(dd);
-
-    // clamp horizontally if near the right edge
-    requestAnimationFrame(() => {
-      const dw = dd.offsetWidth;
-      if (r.left + dw > window.innerWidth - 8) {
-        dd.style.left = `${Math.max(8, window.innerWidth - dw - 8)}px`;
-      }
-    });
-
-    dd.addEventListener("change", async () => {
-      const newStatus = dd.value;
-      if (!newStatus) return;
-
-      await UpdateContractorEnploymentStatus(employeeId, newStatus);
-      currentElement.textContent = newStatus.toUpperCase();
-      currentElement.style.background =
-        newStatus === "Hired"
-          ? "#0c7400"
-          : newStatus === "Fired"
-          ? "#740000"
-          : "#003d74";
-
-      dd.remove();
-    });
-  }
-
-  async function handleAddClient(e) {
-    e.preventDefault();
-    setAddClientError("");
-
-    const simpleEmail = buyerEmail.trim().toLowerCase();
-    console.log("Searching for buyer email:", simpleEmail); // DEBUG LOG
-
-    const { data: buyerData, error: buyerError } = await supabase
-      .from("Buyer")
-      .select("*")
-      .eq("email", simpleEmail)
-      .single();
-
-    console.log("Buyer query result:", buyerData, buyerError); // DEBUG LOG
-
-    if (buyerError || !buyerData) {
-      setAddClientError("No buyer found with that email.");
-      return;
-    }
-    // update the property table with buyer id
-    const { error: updateError } = await supabase
-      .from("Property")
-      .update({ buyer_id: buyerData.buyer_id })
-      .eq("property_id", selectedPropertyId);
-    if (updateError) {
-      setAddClientError("Failed to assign property.");
-      return;
-    }
-    setSelectedPropertyId("");
-    setBuyerEmail("");
-
-    // display all lient that have bought a property with info and property description
-    const { data: properties } = await supabase
-      .from("Property")
-      .select("property_id, description, buyer_id")
-      .not("buyer_id", "is", null);
-    if (!properties) return;
-    const clientList = await Promise.all(
-      properties.map(async (prop) => {
-        const { data: buyer } = await supabase
-          .from("Buyer")
-          .select("name, email")
-          .eq("buyer_id", prop.buyer_id)
-          .single();
-        return {
-          name: buyer?.name,
-          email: buyer?.email,
-          description: prop.description,
-        };
-      })
+    const success = await UpdateContractorEmploymentStatus(
+      employeeId,
+      newStatus
     );
-    setClients(clientList);
+    if (success) {
+      console.log(
+        `Successfully updated contractor ${employeeId} to ${newStatus}`
+      );
+    }
   }
 
   // ----- UI -----
@@ -1002,164 +850,83 @@ export default function AdminDashboard() {
 
         {/* Clients */}
         {activeSection === "clients" && (
-          <div
-            className="clients-dashboard-container"
-            style={{
-              maxWidth: 500,
-              margin: "40px auto",
-              background: "#2c2212",
-              borderRadius: "18px",
-              padding: "32px 32px 24px 32px",
-              boxShadow: "0 2px 16px rgba(0,0,0,0.18)",
-            }}
-          >
-            <div className="clients-header-row" style={{ marginBottom: 24 }}>
-              <UsersIcon width={56} height={56} color="#e5d7b2" />
-              <h1
-                className="clients-title"
-                style={{
-                  fontSize: "2.2rem",
-                  fontWeight: 700,
-                  marginLeft: 16,
-                  color: "#fff",
-                }}
-              >
-                Clients
-              </h1>
+          <div className="clients-dashboard-container">
+            <div className="clients-header-row">
+              <UsersIcon width={48} height={48} color="#e5d7b2" />
+              <h1 className="clients-title">Clients</h1>
             </div>
-            {/* Add Client Form */}
-            <form
-              onSubmit={handleAddClient}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 18,
-                marginBottom: 32,
-              }}
-            >
-              <label
-                style={{
-                  color: "#e5d7b2",
-                  fontWeight: 600,
-                  fontSize: "1.1rem",
-                }}
-              >
-                Select Property:
-                <select
-                  value={selectedPropertyId}
-                  onChange={(e) => setSelectedPropertyId(e.target.value)}
-                  required
-                  style={{
-                    width: "100%",
-                    marginTop: 6,
-                    padding: "10px",
-                    borderRadius: "8px",
-                    border: "1px solid #ad8b18",
-                    background: "#1a1407",
-                    color: "#fff",
-                    fontSize: "1rem",
-                  }}
-                >
-                  <option value="">--Choose Property--</option>
-                  {availableProperties.map((prop) => (
-                    <option key={prop.property_id} value={prop.property_id}>
-                      {prop.description}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label
-                style={{
-                  color: "#e5d7b2",
-                  fontWeight: 600,
-                  fontSize: "1.1rem",
-                }}
-              >
-                Buyer Email:
-                <input
-                  type="email"
-                  value={buyerEmail}
-                  onChange={(e) => setBuyerEmail(e.target.value)}
-                  required
-                  style={{
-                    width: "100%",
-                    marginTop: 6,
-                    padding: "10px",
-                    borderRadius: "8px",
-                    border: "1px solid #ad8b18",
-                    background: "#1a1407",
-                    color: "#fff",
-                    fontSize: "1rem",
-                  }}
-                />
-              </label>
-              <button
-                type="submit"
-                style={{
-                  padding: "12px",
-                  borderRadius: "8px",
-                  background: "#ad8b18",
-                  color: "#222",
-                  fontWeight: 700,
-                  fontSize: "1.1rem",
-                  border: "none",
-                  cursor: "pointer",
-                  marginTop: "8px",
-                }}
-              >
-                Add Client
-              </button>
-              {addClientError && (
-                <div
-                  style={{ color: "#ff4444", fontWeight: 600, marginTop: 4 }}
-                >
-                  {addClientError}
-                </div>
-              )}
-            </form>
-            {/* Display Clients */}
-            <div>
-              <h2
-                style={{
-                  fontSize: "1.5rem",
-                  fontWeight: 700,
-                  color: "#e5d7b2",
-                  marginBottom: "18px",
-                }}
-              >
-                Client List
-              </h2>
-              {clients.map((client, idx) => (
-                <div
-                  key={idx}
-                  className="client-card"
-                  style={{
-                    marginBottom: "18px",
-                    padding: "18px",
-                    background: "#222",
-                    borderRadius: "10px",
-                    color: "#fff",
-                    boxShadow: "0 1px 8px rgba(0,0,0,0.12)",
-                  }}
-                >
-                  <div style={{ fontSize: "1.1rem", marginBottom: 6 }}>
-                    <b>Name:</b> {client.name}
+            <div className="clients-main-row">
+              <div className="clients-table-section">
+                <div className="clients-table-header">
+                  <div className="clients-table-header-cell">NAME</div>
+                  <div className="clients-table-header-cell">STATUS</div>
+                  <div className="clients-table-header-cell">
+                    ASSIGNED AGENT
                   </div>
-                  <div style={{ fontSize: "1.1rem", marginBottom: 6 }}>
-                    <b>Email:</b> {client.email}
-                  </div>
-                  <div style={{ fontSize: "1.1rem" }}>
-                    <b>Property:</b> {client.description}
+                  <div className="clients-table-header-cell">
+                    INQUIRIES/ VIEWINGS
                   </div>
                 </div>
-              ))}
-              {clients.length === 0 && (
-                <div
-                  style={{ color: "#ad8b18", fontWeight: 500, marginTop: 12 }}
-                >
-                  No clients yet.
+                {clientsData.map((client, idx) => (
+                  <div
+                    className={`clients-table-row${
+                      selectedClientIdx === idx ? " selected" : ""
+                    }`}
+                    key={idx}
+                    onClick={() => setSelectedClientIdx(idx)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <div className="clients-table-cell">{client.name}</div>
+                    <div className="clients-table-cell">{client.status}</div>
+                    <div className="clients-table-cell">{client.agent}</div>
+                    <div className="clients-table-cell">{client.inquiries}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="clients-profile-section">
+                <div className="client-profile-card">
+                  <div className="client-profile-title">Client Profile</div>
+                  <div className="client-profile-avatar"></div>
+                  <div className="client-profile-name">
+                    {clientsData[selectedClientIdx].name}
+                  </div>
+                  <div className="client-profile-contact">
+                    {clientsData[selectedClientIdx].email}
+                    <br />
+                    {clientsData[selectedClientIdx].phone}
+                  </div>
+                  <textarea
+                    className="client-profile-note"
+                    placeholder="Note"
+                    value={clientsData[selectedClientIdx].note}
+                    readOnly
+                  />
+                  Saved Properties:{" "}
+                  {clientsData[selectedClientIdx].savedProperties}
                 </div>
-              )}
+                <div className="lead-stage-tracker">
+                  <div className="lead-stage-title">Lead Stage Tracker</div>
+                  <div className="lead-stage-list">
+                    <div className="lead-stage-item">
+                      <span className="lead-stage-dot new"></span> New
+                    </div>
+                    <div className="lead-stage-item">
+                      <span className="lead-stage-dot contacted"></span>{" "}
+                      Contacted
+                    </div>
+                    <div className="lead-stage-item">
+                      <span className="lead-stage-dot viewing"></span> Viewing
+                      Schedule
+                    </div>
+                    <div className="lead-stage-item">
+                      <span className="lead-stage-dot offer"></span> Offer Made
+                    </div>
+                    <div className="lead-stage-item">
+                      <span className="lead-stage-dot closed"></span> Closed
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -1340,101 +1107,184 @@ export default function AdminDashboard() {
         {/* Job Portal Section */}
         {activeSection === "jobPortal" && (
           <div className="job-portal-dashboard-container">
-            <div className="job-portal-header-row">
-              <div className="job-portal-title-row">
+            <div className="job-portal-header">
+              <div className="job-portal-title-section">
                 <ClipboardDocumentListIcon
-                  width={38}
-                  height={38}
+                  width={32}
+                  height={32}
                   color="#e5d7b2"
                 />
-                <h1 className="job-portal-title">Job Portal</h1>
+                <h1>Career Applications Management</h1>
+              </div>
+              <div className="job-portal-stats">
+                <div className="stat-card">
+                  <span className="stat-number">{applicationsData.length}</span>
+                  <span className="stat-label">Total Applications</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-number">
+                    {
+                      applicationsData.filter(
+                        (app) => app?.employment_status === "employed"
+                      ).length
+                    }
+                  </span>
+                  <span className="stat-label">Approved</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-number">
+                    {
+                      applicationsData.filter(
+                        (app) => app?.employment_status === "unemployed"
+                      ).length
+                    }
+                  </span>
+                  <span className="stat-label">Pending</span>
+                </div>
               </div>
             </div>
-            <div className="job-portal-content">
-              <div className="contractor-list">
+
+            <div className="applications-table-container">
+              <div className="applications-table-header">
+                <div className="table-header-cell" style={{ width: "20%" }}>
+                  Applicant
+                </div>
+                <div className="table-header-cell" style={{ width: "15%" }}>
+                  Applied Date
+                </div>
+                <div className="table-header-cell" style={{ width: "20%" }}>
+                  Contact
+                </div>
+                <div className="table-header-cell" style={{ width: "15%" }}>
+                  Status
+                </div>
+                <div className="table-header-cell" style={{ width: "15%" }}>
+                  Skills
+                </div>
+                <div className="table-header-cell" style={{ width: "15%" }}>
+                  Actions
+                </div>
+              </div>
+
+              <div className="applications-table-body">
                 {applicationsData.map((app, idx) => (
-                  <div className="application-card" key={idx}>
-                    <div className="application-info">
-                      <div className="contractor-name">
+                  <div className="application-row" key={idx}>
+                    <div
+                      className="table-cell applicant-info"
+                      style={{ width: "20%" }}
+                    >
+                      <div className="applicant-name">
                         {app?.name || "Unknown"}
                       </div>
-                      <div className="contractor-date">
-                        {app?.date || "N/A"}
+                      <div className="applicant-id">
+                        ID: {app?.employee_id || "N/A"}
                       </div>
-                      <div className="contractor-contact">
-                        {app?.email || "N/A"} &nbsp;|&nbsp;{" "}
+                    </div>
+
+                    <div className="table-cell" style={{ width: "15%" }}>
+                      <div className="application-date">
+                        {app?.date
+                          ? new Date(app.date).toLocaleDateString()
+                          : "N/A"}
+                      </div>
+                    </div>
+
+                    <div
+                      className="table-cell contact-info"
+                      style={{ width: "20%" }}
+                    >
+                      <div className="contact-email">{app?.email || "N/A"}</div>
+                      <div className="contact-phone">
                         {app?.phone_number || "N/A"}
                       </div>
                     </div>
-                    {/* Contractor Actions */}
-                    <div className="contractor-actions">
+
+                    <div className="table-cell" style={{ width: "15%" }}>
                       <select
-                        className="contractor-status"
-                        style={{
-                          background:
-                            statusColors[
-                              app?.employment_status?.toLowerCase()
-                            ] || "#000",
-                          color: "#fff",
-                          padding: "6px 12px",
-                          borderRadius: "4px",
-                          fontSize: "14px",
-                          fontWeight: "bold",
-                          cursor: "pointer",
-                          border: "none",
-                          outline: "none",
-                        }}
+                        className={`status-dropdown status-${
+                          app?.employment_status || "unemployed"
+                        }`}
                         value={app?.employment_status || "unemployed"}
                         onChange={(e) =>
                           handleStatusChange(app?.employee_id, e.target.value)
                         }
                       >
-                        <option value="unemployed">PENDING</option>
-                        <option value="employed">APPROVED</option>
-                        <option value="rejected">REJECTED</option>
+                        <option value="unemployed">Pending Review</option>
+                        <option value="employed">Approved</option>
+                        <option value="rejected">Rejected</option>
                       </select>
+                    </div>
+
+                    <div className="table-cell" style={{ width: "15%" }}>
                       <button
-                        className="contractor-more-btn"
-                        style={{
-                          marginLeft: "8px",
-                          padding: "6px 12px",
-                          backgroundColor: "#444",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: "4px",
-                          fontSize: "14px",
-                          cursor: "pointer",
-                        }}
+                        className="skills-btn"
                         onClick={() => fetchContractorSkills(app?.employee_id)}
                       >
-                        MORE INFO
+                        View Skills
                       </button>
+                    </div>
+
+                    <div className="table-cell" style={{ width: "15%" }}>
+                      <div className="action-buttons">
+                        <button
+                          className="action-btn approve-btn"
+                          onClick={() =>
+                            handleStatusChange(app?.employee_id, "employed")
+                          }
+                          disabled={app?.employment_status === "employed"}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          className="action-btn reject-btn"
+                          onClick={() =>
+                            handleStatusChange(app?.employee_id, "rejected")
+                          }
+                          disabled={app?.employment_status === "rejected"}
+                        >
+                          Reject
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-              {/* Skills Panel on the Right */}
-              {showSkillsModal && (
-                <div className="skills-right-panel">
-                  <div className="skills-panel-header">
-                    <h3>Applicant Skills</h3>
+            </div>
+
+            {/* Skills Modal - Improved Design */}
+            {showSkillsModal && (
+              <div className="skills-modal-overlay">
+                <div className="skills-modal">
+                  <div className="skills-modal-header">
+                    <h3>Applicant Skills & Qualifications</h3>
                     <button
-                      className="close-btn"
+                      className="modal-close-btn"
                       onClick={() => setShowSkillsModal(false)}
                     >
-                      ×
+                      ✕
                     </button>
                   </div>
-                  <div className="skills-panel-content">
-                    <p>
-                      {Array.isArray(contractorSkills)
-                        ? contractorSkills.join(", ")
-                        : contractorSkills || "No skills available."}
-                    </p>
+                  <div className="skills-modal-content">
+                    {Array.isArray(contractorSkills) &&
+                    contractorSkills.length > 0 ? (
+                      <div className="skills-list">
+                        {contractorSkills.map((skill, index) => (
+                          <span key={index} className="skill-tag">
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="no-skills">
+                        <p>
+                          No skills information available for this applicant.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
       </div>

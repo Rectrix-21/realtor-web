@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "../../database/auth";
@@ -15,15 +15,7 @@ export default function SavedProperties() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (!authLoading && user) {
-      loadBookmarks();
-    } else if (!authLoading && !user) {
-      setLoading(false);
-    }
-  }, [user, authLoading]);
-
-  async function loadBookmarks() {
+  const loadBookmarks = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
@@ -42,7 +34,15 @@ export default function SavedProperties() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      loadBookmarks();
+    } else if (!authLoading && !user) {
+      setLoading(false);
+    }
+  }, [user, authLoading, loadBookmarks]);
 
   async function handleRemoveBookmark(propertyId) {
     if (!user) return;

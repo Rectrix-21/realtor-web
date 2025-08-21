@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import "./styles.css";
@@ -98,13 +98,7 @@ export default function Listings() {
   }, [properties]);
 
   // Check bookmarks when user and properties are loaded
-  useEffect(() => {
-    if (user && properties.length > 0) {
-      checkBookmarks();
-    }
-  }, [user, properties]);
-
-  async function checkBookmarks() {
+  const checkBookmarks = useCallback(async () => {
     if (!user || properties.length === 0) return;
 
     const bookmarked = new Set();
@@ -125,7 +119,13 @@ export default function Listings() {
     }
 
     setBookmarkedProperties(bookmarked);
-  }
+  }, [user, properties]);
+
+  useEffect(() => {
+    if (user && properties.length > 0) {
+      checkBookmarks();
+    }
+  }, [user, properties, checkBookmarks]);
 
   async function handleBookmarkToggle(e, propertyId) {
     e.preventDefault(); // Prevent navigation

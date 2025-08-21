@@ -37,7 +37,7 @@ class ErrorBoundary extends Component {
             Something went wrong
           </h2>
           <p style={{ marginBottom: "30px", maxWidth: "500px" }}>
-            We're having trouble loading the page. This could be due to a
+            We&apos;re having trouble loading the page. This could be due to a
             network issue or temporary service interruption.
           </p>
           <button

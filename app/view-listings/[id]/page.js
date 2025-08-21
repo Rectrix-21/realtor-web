@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -192,13 +192,7 @@ export default function ListingDetailsPage() {
   }, [images]);
 
   // Check if property is bookmarked when user and property are loaded
-  useEffect(() => {
-    if (user && prop) {
-      checkBookmarkStatus();
-    }
-  }, [user, prop]);
-
-  async function checkBookmarkStatus() {
+  const checkBookmarkStatus = useCallback(async () => {
     if (!user || !prop) return;
 
     try {
@@ -207,7 +201,13 @@ export default function ListingDetailsPage() {
     } catch (error) {
       console.error("Error checking bookmark status:", error);
     }
-  }
+  }, [user, prop]);
+
+  useEffect(() => {
+    if (user && prop) {
+      checkBookmarkStatus();
+    }
+  }, [user, prop, checkBookmarkStatus]);
 
   // Handle bookmark toggle
   async function handleBookmarkToggle() {
@@ -337,7 +337,7 @@ export default function ListingDetailsPage() {
         onClick={() => router.push("/")}
         style={{ cursor: "pointer" }}
       >
-        <img src="/images/logo/logo.png" alt="Havenly Logo" />
+        <Image src="/images/logo/logo.png" alt="Havenly Logo" width={300} height={80} />
       </div>
 
       {/* navbar */}

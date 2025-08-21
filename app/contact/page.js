@@ -18,7 +18,7 @@ export default function Contact() {
         onClick={() => router.push("/")}
         style={{ cursor: "pointer" }}
       >
-        <img src="/images/logo/logo.png" alt="Havenly Logo" />
+        <Image src="/images/logo/logo.png" alt="Havenly Logo" width={300} height={80} />
       </div>
       <nav className="navbar">
         <ul className="navbar-ul">

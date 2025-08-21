@@ -180,6 +180,37 @@ export default function SavedProperties() {
         </ul>
       </nav>
 
+      {/* Simple Mobile Bottom Navigation */}
+      <nav className="mobile-bottom-nav">
+        <Link href="/" className="mobile-nav-item">
+          <span>Home</span>
+        </Link>
+        <Link href="/contact" className="mobile-nav-item">
+          <span>About</span>
+        </Link>
+        <Link href="/view-listings" className="mobile-nav-item">
+          <span>Properties</span>
+        </Link>
+        {user && (
+          <Link href="/saved-properties" className="mobile-nav-item">
+            <span>Saved</span>
+          </Link>
+        )}
+        <Link href="/careers" className="mobile-nav-item">
+          <span>Careers</span>
+        </Link>
+        {user && role === "buyer" && (
+          <Link href="/my-applications" className="mobile-nav-item">
+            <span>My Apps</span>
+          </Link>
+        )}
+        {user && role === "admin" && (
+          <Link href="/admin-dashboard" className="mobile-nav-item">
+            <span>Admin</span>
+          </Link>
+        )}
+      </nav>
+
       {user && (
         <div className="profile-banner-container">
           <ProfileBanner />
